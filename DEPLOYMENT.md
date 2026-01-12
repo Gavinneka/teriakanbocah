@@ -14,9 +14,9 @@
 # Di folder project (d:\Teriakan Bocah)
 git init
 git add .
-git commit -m "Initial commit - AC Tracker & Work System"
+git commit -m "Teriakan Bocah"
 git branch -M main
-git remote add origin https://github.com/USERNAME/REPO_NAME.git
+git remote add origin git@github.com:Gavinneka/teriakanbocah.git
 git push -u origin main
 ```
 
@@ -93,7 +93,7 @@ sudo nano /etc/systemd/system/teriakan-bocah.service
 ### 4.2 Isi File Service
 ```ini
 [Unit]
-Description=Teriakan Bocah - AC Tracker & Work System
+Description=Teriakan Bocah Application
 After=network.target
 
 [Service]
