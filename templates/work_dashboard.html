@@ -1,0 +1,79 @@
+{{template "sidebar_layout.html" .}}
+
+{{define "content"}}
+<div class="h-full flex flex-col">
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900 italic">Work Board</h1>
+            <p class="text-sm text-gray-500">Track and move your active tasks.</p>
+        </div>
+        <div class="flex -space-x-2">
+            <div class="h-8 w-8 rounded-full bg-blue-500 border-2 border-white flex items-center justify-center text-[10px] text-white font-bold">ME</div>
+        </div>
+    </div>
+
+    <!-- Kanban Board Grid -->
+    <div class="flex-1 flex gap-6 overflow-x-auto pb-4">
+        <!-- TODO Column -->
+        <div class="w-80 flex-shrink-0 flex flex-col bg-gray-100/50 rounded-lg p-3 border border-gray-200">
+            <div class="flex items-center justify-between mb-4 px-1">
+                <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">To Do</h3>
+                <span class="bg-gray-200 text-gray-600 px-2 py-0.5 rounded text-[10px] font-bold">{{len .Todo}}</span>
+            </div>
+            <div class="flex-1 space-y-3 overflow-y-auto">
+                {{range .Todo}}
+                <div class="bg-white p-4 rounded-md shadow-sm border border-gray-200 group cursor-pointer hover:border-blue-400 transition-colors"
+                     hx-get="/work/tasks/{{.ID}}/drawer" hx-target="#side-drawer">
+                    <p class="text-xs text-gray-400 font-bold mb-1">#{{.ID}}</p>
+                    <p class="text-sm text-gray-800 font-medium">{{.Title}}</p>
+                </div>
+                {{end}}
+            </div>
+        </div>
+
+        <!-- DOING Column -->
+        <div class="w-80 flex-shrink-0 flex flex-col bg-gray-100/50 rounded-lg p-3 border border-gray-200 border-t-4 border-blue-500">
+            <div class="flex items-center justify-between mb-4 px-1">
+                <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">In Progress</h3>
+                <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[10px] font-bold">{{len .Doing}}</span>
+            </div>
+            <div class="flex-1 space-y-3 overflow-y-auto">
+                {{range .Doing}}
+                <div class="bg-white p-4 rounded-md shadow-sm border border-gray-200 group cursor-pointer hover:border-blue-400 transition-colors"
+                     hx-get="/work/tasks/{{.ID}}/drawer" hx-target="#side-drawer">
+                    <p class="text-xs text-gray-400 font-bold mb-1">#{{.ID}}</p>
+                    <p class="text-sm text-gray-800 font-medium">{{.Title}}</p>
+                </div>
+                {{else}}
+                <div class="py-12 flex items-center justify-center border-2 border-dashed border-gray-200 rounded-lg">
+                    <p class="text-xs text-gray-400 italic">No tasks in progress</p>
+                </div>
+                {{end}}
+            </div>
+        </div>
+
+        <!-- DONE Column -->
+        <div class="w-80 flex-shrink-0 flex flex-col bg-gray-100/50 rounded-lg p-3 border border-gray-200">
+            <div class="flex items-center justify-between mb-4 px-1">
+                <h3 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Done</h3>
+                <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-[10px] font-bold">{{len .Done}}</span>
+            </div>
+            <div class="flex-1 space-y-3 overflow-y-auto">
+                {{range .Done}}
+                <div class="bg-white p-4 rounded-md shadow-sm border border-gray-200 opacity-60 group cursor-pointer hover:opacity-100 transition-all"
+                     hx-get="/work/tasks/{{.ID}}/drawer" hx-target="#side-drawer">
+                    <p class="text-xs text-gray-400 font-bold mb-1">#{{.ID}}</p>
+                    <p class="text-sm text-gray-800 font-medium line-through decoration-gray-400">{{.Title}}</p>
+                </div>
+                {{end}}
+            </div>
+        </div>
+
+        <!-- New Column Action -->
+        <button class="w-80 h-10 flex-shrink-0 flex items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-gray-400 hover:text-gray-600 hover:border-gray-400 transition-all">
+            <svg class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+            <span class="text-xs font-bold">Create Status</span>
+        </button>
+    </div>
+</div>
+{{end}}

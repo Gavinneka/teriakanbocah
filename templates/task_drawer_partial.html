@@ -1,0 +1,62 @@
+<div class="h-full flex flex-col bg-white">
+    <!-- Drawer Header -->
+    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+        <h3 class="text-lg font-bold text-gray-900">Task Details</h3>
+        <button onclick="document.getElementById('side-drawer').classList.add('translate-x-full')" class="text-gray-400 hover:text-gray-600">
+            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+    </div>
+
+    <!-- Drawer Content -->
+    <div class="flex-1 overflow-y-auto p-6">
+        <form hx-put="/work/tasks/{{.Task.ID}}" hx-swap="none" class="space-y-6">
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Title</label>
+                <input type="text" name="title" value="{{.Task.Title}}" class="w-full border-none focus:ring-2 focus:ring-blue-500 rounded-md text-xl font-bold p-2 -ml-2" placeholder="Task summary...">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Outcome (Definition of Done)</label>
+                <textarea name="outcome" rows="3" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="What does 'done' look like?">{{.Task.Outcome}}</textarea>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Status</label>
+                    <select name="status" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                        <option value="inbox" {{if eq .Task.Status "inbox"}}selected{{end}}>Inbox</option>
+                        <option value="todo" {{if eq .Task.Status "todo"}}selected{{end}}>Todo</option>
+                        <option value="doing" {{if eq .Task.Status "doing"}}selected{{end}}>Doing</option>
+                        <option value="done" {{if eq .Task.Status "done"}}selected{{end}}>Done</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Estimate (Min)</label>
+                    <input type="number" name="estimate" value="{{.Task.Estimate}}" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="Min">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Project</label>
+                <select name="project_id" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                    <option value="0">No Project</option>
+                    {{range .Projects}}
+                    <option value="{{.ID}}" {{if eq $.Task.ProjectID .ID}}selected{{end}}>{{.Name}}</option>
+                    {{end}}
+                </select>
+            </div>
+
+            <div class="pt-6 border-t border-gray-100 flex justify-end">
+                <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-6 rounded hover:bg-blue-700 transition-colors">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Activity Footer (Mock) -->
+    <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Metadata</p>
+        <p class="text-xs text-gray-500 mt-1 italic">Last updated: {{.Task.UpdatedAt.Format "Jan 02, 15:04"}}</p>
+    </div>
+</div>

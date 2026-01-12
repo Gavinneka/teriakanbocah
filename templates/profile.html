@@ -1,0 +1,92 @@
+{{template "base.html" .}}
+
+{{define "content"}}
+<div class="max-w-4xl mx-auto py-12 px-4">
+    <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-900">Profil Saya</h2>
+        <p class="text-gray-500">Informasi akun dan aktivitas login Anda.</p>
+    </div>
+
+    {{if .Request.URL.Query.Get "success"}}
+    <div class="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
+        <p class="text-sm text-green-800 font-medium">✅ Password berhasil diubah!</p>
+    </div>
+    {{end}}
+
+    <!-- User Info Card -->
+    <div class="bg-white shadow rounded-xl p-8 border border-gray-100 mb-6">
+        <h3 class="text-lg font-bold text-gray-900 mb-6">Informasi Akun</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Username</label>
+                <p class="text-gray-900 font-medium">{{.User.Username}}</p>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Role</label>
+                <p class="text-gray-900 font-medium capitalize">{{.User.Role}}</p>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Terakhir Login</label>
+                <p class="text-gray-900 font-medium">
+                    {{if .User.LastLogin}}
+                        {{.User.LastLogin.Format "02 Jan 2006, 15:04"}}
+                    {{else}}
+                        -
+                    {{end}}
+                </p>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Akun Dibuat</label>
+                <p class="text-gray-900 font-medium">{{.User.CreatedAt.Format "02 Jan 2006"}}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Card -->
+    <div class="bg-white shadow rounded-xl p-8 border border-gray-100 mb-6">
+        <h3 class="text-lg font-bold text-gray-900 mb-6">Ganti Password</h3>
+        <form action="/profile/change-password" method="POST" class="space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Password Lama</label>
+                <input type="password" name="old_password" required 
+                       class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Password Baru</label>
+                <input type="password" name="new_password" required minlength="6"
+                       class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+            </div>
+            <div class="pt-4">
+                <button type="submit" 
+                        class="w-full sm:w-auto px-8 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                    Ubah Password
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Recent Login Activity -->
+    <div class="bg-white shadow rounded-xl border border-gray-100 overflow-hidden">
+        <div class="px-8 py-5 border-b border-gray-100 bg-gray-50/50">
+            <h3 class="text-lg font-bold text-gray-900">Aktivitas Login Terakhir</h3>
+        </div>
+        <div class="p-8">
+            {{if .LoginLogs}}
+            <div class="space-y-3">
+                {{range .LoginLogs}}
+                <div class="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                    <div>
+                        <p class="text-sm font-medium text-gray-900">{{.LoginAt.Format "02 Jan 2006, 15:04"}}</p>
+                        <p class="text-xs text-gray-500">IP: {{.IPAddress}}</p>
+                    </div>
+                    <span class="text-xs text-gray-400">✓</span>
+                </div>
+                {{end}}
+            </div>
+            {{else}}
+            <p class="text-sm text-gray-500 italic text-center py-8">Belum ada riwayat login.</p>
+            {{end}}
+        </div>
+    </div>
+</div>
+{{end}}

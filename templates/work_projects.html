@@ -1,0 +1,68 @@
+{{template "base.html" .}}
+
+{{define "content"}}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight">Projects</h2>
+            <p class="mt-1 text-lg text-gray-500">Active goals and outcomes.</p>
+        </div>
+        <a href="/work" class="text-indigo-600 hover:text-indigo-800 font-medium flex items-center">
+            &larr; Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Create Project Form -->
+    <div class="bg-white shadow-lg rounded-2xl p-6 mb-8 border border-gray-100">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Start New Project</h3>
+        <form action="/work/projects" method="POST" class="grid grid-cols-1 gap-y-4 sm:grid-cols-6 sm:gap-x-4">
+            <div class="sm:col-span-2">
+                <label for="name" class="block text-sm font-medium text-gray-700">Project Name</label>
+                <div class="mt-1">
+                    <input type="text" name="name" id="name" required class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="e.g. Website Overhaul">
+                </div>
+            </div>
+            <div class="sm:col-span-3">
+                <label for="outcome_goal" class="block text-sm font-medium text-gray-700">Outcome Goal (Definition of Done)</label>
+                <div class="mt-1">
+                    <input type="text" name="outcome_goal" id="outcome_goal" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="e.g. All pages responsive and speed score > 90">
+                </div>
+            </div>
+            <div class="sm:col-span-1 flex items-end">
+                <button type="submit" class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Create
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Projects List -->
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        {{range .Projects}}
+        <div class="bg-white overflow-hidden shadow rounded-xl border border-gray-200 hover:shadow-md transition-shadow">
+            <div class="px-5 py-5 sm:px-6">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 truncate">
+                        {{.Name}}
+                    </h3>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{if eq .Status "active"}}bg-green-100 text-green-800{{else}}bg-gray-100 text-gray-800{{end}}">
+                        {{.Status}}
+                    </span>
+                </div>
+                <p class="mt-2 text-sm text-gray-500">
+                    Goal: {{.OutcomeGoal}}
+                </p>
+                <div class="mt-4 flex justify-end">
+                    <a href="#" class="text-sm font-medium text-indigo-600 hover:text-indigo-500">View Tasks &rarr;</a>
+                </div>
+            </div>
+        </div>
+        {{else}}
+        <div class="col-span-full text-center py-12 text-gray-500">
+            No active projects. Start one above!
+        </div>
+        {{end}}
+    </div>
+</div>
+{{end}}

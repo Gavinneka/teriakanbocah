@@ -1,0 +1,130 @@
+{{template "base.html" .}}
+
+{{define "content"}}
+<div class="max-w-2xl mx-auto py-12 px-4">
+    <div class="mb-8">
+        <h2 class="text-2xl font-bold text-gray-900">Edit Task</h2>
+        <p class="text-gray-500">Perbarui detail pekerjaan Anda.</p>
+    </div>
+
+    <div class="bg-white shadow rounded-xl p-8 border border-gray-100 mb-8">
+        <form action="/work/edit/{{.Task.ID}}" method="POST" class="space-y-6">
+            <!-- Form fields remain the same -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Task / Aktivitas</label>
+                <input type="text" name="title" value="{{.Task.Title}}" required 
+                       class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Proses / Kendala (Notes Utama)</label>
+                <textarea name="notes" rows="4" 
+                          class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" 
+                          placeholder="Apa yang sedang terjadi atau apa hambatannya?">{{.Task.Outcome}}</textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                    <select name="status" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                        <option value="todo" {{if eq .Task.Status "todo"}}selected{{end}}>Dalam Proses</option>
+                        <option value="done" {{if eq .Task.Status "done"}}selected{{end}}>Beres / Selesai</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Prioritas</label>
+                    <select name="priority" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                        <option value="high" {{if eq .Task.Priority "high"}}selected{{end}}>High (Penting!)</option>
+                        <option value="medium" {{if eq .Task.Priority "medium"}}selected{{end}}>Medium (Normal)</option>
+                        <option value="low" {{if eq .Task.Priority "low"}}selected{{end}}>Low (Santai)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="pt-6 border-t border-gray-100">
+                <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+                    <a href="/work" class="order-2 sm:order-1 text-sm font-medium text-gray-500 hover:text-gray-700">Kembali ke Daftar</a>
+                    <button type="submit" 
+                            class="order-1 sm:order-2 w-full sm:w-auto px-10 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-md active:scale-95">
+                        Simpan Perubahan
+                    </button>
+                </div>
+                
+                <div class="flex justify-end gap-2">
+                    {{if not .Task.IsArchived}}
+                    <button type="submit" formaction="/work/tasks/{{.Task.ID}}/archive" class="px-3 py-1 text-xs text-gray-500 hover:text-gray-900 border border-gray-200 rounded hover:bg-gray-50 transition-colors">
+                        📦 Arsipkan
+                    </button>
+                    {{end}}
+                    <button type="submit" formaction="/work/tasks/{{.Task.ID}}/delete" class="px-3 py-1 text-xs text-red-500 hover:text-red-700 border border-red-100 rounded hover:bg-red-50 transition-colors" onclick="return confirm('Yakin hapus task ini permanen?')">
+                        🗑️ Hapus Permanen
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Riwayat Kendala Section -->
+    <div class="bg-white shadow rounded-xl border border-gray-100 overflow-hidden">
+        <div class="px-8 py-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+            <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <span class="text-red-500">⚠️</span> Riwayat Kendala
+            </h3>
+            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{len .Task.Obstacles}} Kendala</span>
+        </div>
+        
+        <div class="p-8">
+            <!-- Add Obstacle Form -->
+            <form action="/work/tasks/{{.Task.ID}}/obstacles" method="POST" class="flex gap-2 mb-8">
+                <input type="text" name="description" required 
+                       class="flex-1 border-gray-200 rounded-lg text-sm focus:ring-red-300 focus:border-red-400 placeholder-gray-300 bg-gray-50/50" 
+                       placeholder="Ada hambatan apa baru-baru ini?">
+                <button type="submit" class="px-6 py-2 bg-red-50 text-red-600 text-xs font-bold rounded-lg hover:bg-red-100 transition-colors border border-red-100">
+                    Tambah
+                </button>
+            </form>
+
+            <!-- Obstacles List -->
+            <div class="space-y-4">
+                {{range .Task.Obstacles}}
+                <div class="flex items-start justify-between p-4 rounded-xl border {{if eq .Status "resolved"}}bg-green-50/20 border-green-100 opacity-60{{else}}bg-white border-gray-100 shadow-sm{{end}}">
+                    <div class="flex-1">
+                        <p class="text-sm font-medium {{if eq .Status "resolved"}}line-through text-gray-400{{else}}text-gray-900{{end}}">
+                            {{.Description}}
+                        </p>
+                        <div class="mt-1 flex items-center gap-3 text-[10px] text-gray-400">
+                            <span>🕒 Muncul: {{.CreatedAt.Format "02 Jan, 15:04"}}</span>
+                            {{if .ResolvedAt}}
+                            <span class="text-green-600 font-bold">✨ Selesai: {{.ResolvedAt.Format "15:04"}}</span>
+                            {{end}}
+                        </div>
+                    </div>
+                    <div class="ml-4 flex items-center gap-2">
+                        <form action="/work/tasks/{{$.Task.ID}}/obstacles/{{.ID}}/resolve" method="POST" class="m-0">
+                            <button type="submit" 
+                                    class="p-2 rounded-lg transition-colors {{if eq .Status "resolved"}}text-green-600 hover:bg-green-100{{else}}text-gray-300 hover:text-green-500 hover:bg-green-50{{end}}"
+                                    title="{{if eq .Status "resolved"}}Buka kembali{{else}}Selesaikan kendala{{end}}">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                            </button>
+                        </form>
+                        <form action="/work/tasks/{{$.Task.ID}}/obstacles/{{.ID}}/delete" method="POST" class="m-0" onsubmit="return confirm('Hapus riwayat kendala ini?')">
+                            <button type="submit" class="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Hapus">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {{else}}
+                <div class="py-12 text-center">
+                    <p class="text-xs text-gray-400 italic">Belum ada riwayat kendala untuk task ini.</p>
+                </div>
+                {{end}}
+            </div>
+        </div>
+    </div>
+</div>
+{{end}}

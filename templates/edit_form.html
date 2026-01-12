@@ -1,0 +1,46 @@
+<form hx-put="/ac/records/{{.Record.ID}}" hx-target="closest tr" hx-swap="outerHTML" class="bg-blue-50 p-4 rounded-lg border border-blue-200 shadow-inner">
+    <div class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-6">
+        <div class="sm:col-span-1">
+            <label class="block text-xs font-medium text-gray-700">Tanggal</label>
+            <input type="date" name="date" value="{{.Record.Date.Format "2006-01-02"}}" max="2100-12-31" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+        </div>
+        <div class="sm:col-span-1">
+            <label class="block text-xs font-medium text-gray-700">Ruangan</label>
+            <select name="room_select" onchange="if(this.value==='Lainnya'){document.getElementById('edit_room_custom_{{.Record.ID}}').classList.remove('hidden');}else{document.getElementById('edit_room_custom_{{.Record.ID}}').classList.add('hidden');}" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                {{range .Rooms}}
+                <option value="{{.}}" {{if eq . $.Record.Room}}selected{{end}}>{{.}}</option>
+                {{end}}
+                <option value="Lainnya">Lainnya...</option>
+            </select>
+            <input type="text" id="edit_room_custom_{{.Record.ID}}" name="room_custom" placeholder="Nama Ruangan" class="hidden mt-2 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+        </div>
+        <div class="sm:col-span-1">
+            <label class="block text-xs font-medium text-gray-700">Unit AC</label>
+            <input type="text" name="unit" value="{{.Record.Unit}}" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+        </div>
+        <div class="sm:col-span-1">
+            <label class="block text-xs font-medium text-gray-700">Kegiatan</label>
+            <input type="text" name="activity" value="{{.Record.Activity}}" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+        </div>
+        <div class="sm:col-span-1">
+            <label class="block text-xs font-medium text-gray-700">Status</label>
+            <select name="status" class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                <option value="Selesai" {{if eq .Record.Status "Selesai"}}selected{{end}}>Selesai</option>
+                <option value="Terjadwal" {{if eq .Record.Status "Terjadwal"}}selected{{end}}>Terjadwal</option>
+                <option value="Menunggu" {{if eq .Record.Status "Menunggu"}}selected{{end}}>Menunggu</option>
+            </select>
+        </div>
+        <div class="sm:col-span-1">
+            <label class="block text-xs font-medium text-gray-700">Catatan</label>
+            <input type="text" name="notes" value="{{.Record.Notes}}" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+        </div>
+    </div>
+    <div class="mt-4 flex justify-end space-x-2">
+        <button type="button" hx-get="/ac/records?room={{.Record.Room}}" hx-target="body" class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            Batal
+        </button>
+        <button type="submit" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            Simpan Perubahan
+        </button>
+    </div>
+</form>

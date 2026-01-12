@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Teriakan Bocah - Work System</title>
+    <link rel="icon" type="image/png" href="/static/logo.png">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F4F5F7; }
+        .sidebar-item-active { background-color: rgba(255, 255, 255, 0.1); border-left: 4px solid #fff; }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-gray-200 flex-shrink-0 flex flex-col hidden md:flex">
+        <div class="p-6 flex items-center space-x-3">
+            <div class="h-8 w-8 bg-blue-600 rounded-md flex items-center justify-center">
+                <span class="text-white font-black text-xs">TB</span>
+            </div>
+            <span class="font-bold text-lg tracking-tight text-gray-900">Work System</span>
+        </div>
+
+        <!-- Global Create -->
+        <div class="px-4 mb-6">
+            <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow-sm flex items-center justify-center transition-colors">
+                <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
+                </svg>
+                Create
+            </button>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 px-2 space-y-1">
+            <a href="/" class="flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition-colors">
+                <span class="mr-3 text-xl">🏠</span> Dashboard
+            </a>
+            
+            <div class="pt-4 pb-2 px-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Plan & Execute</div>
+            <a href="/work/inbox" class="flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition-colors">
+                <span class="mr-3 text-xl">📥</span> Backlog (Inbox)
+            </a>
+            <a href="/work" class="flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition-colors">
+                <span class="mr-3 text-xl">📋</span> Board
+            </a>
+            <a href="/work/projects" class="flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition-colors">
+                <span class="mr-3 text-xl">📂</span> Projects
+            </a>
+
+            <div class="pt-4 pb-2 px-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Modules</div>
+            <a href="/ac" class="flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition-colors">
+                <span class="mr-3 text-xl">❄️</span> AC Tracker
+            </a>
+        </nav>
+
+        <!-- User Profile Bottom -->
+        <div class="p-4 border-t border-gray-100" x-data="{ open: false }">
+            <button @click="open = !open" class="w-full flex items-center space-x-3 hover:bg-gray-50 p-2 rounded-lg transition-colors relative">
+                <div class="h-8 w-8 rounded-full bg-blue-100 text-blue-800 flex items-center justify-center font-bold">
+                    {{if .UserName}}{{slice .UserName 0 1}}{{else}}G{{end}}
+                </div>
+                <div class="flex-1 text-left min-w-0">
+                    <p class="text-xs font-bold text-gray-900 truncate">{{if .UserName}}{{.UserName}}{{else}}Guest{{end}}</p>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-tighter">{{.UserRole}}</p>
+                </div>
+            </button>
+            <div x-show="open" @click.away="open = false" class="absolute bottom-16 left-4 w-56 bg-white rounded-lg shadow-2xl py-2 text-gray-800 z-50 border border-gray-200">
+                {{if eq .UserRole "master"}}
+                <a href="/admin/users" class="block px-4 py-2 text-sm hover:bg-gray-100">Admin Settings</a>
+                {{end}}
+                <a href="/logout" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-bold border-t mt-1">Logout</a>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Dynamic Content -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Header / Breadcrumbs -->
+        <header class="h-14 bg-white border-b border-gray-200 flex items-center px-6">
+            <div class="flex-1">
+                <nav class="text-sm font-medium text-gray-500 flex items-center space-x-2">
+                    <a href="/work" class="hover:text-blue-600">Work System</a>
+                    <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><path d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"/></svg>
+                    <span class="text-gray-900 font-bold active-page-title">Dashboard</span>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Dynamic Content -->
+        <main class="flex-1 overflow-y-auto p-8" id="main-content">
+            {{block "content" .}}{{end}}
+        </main>
+    </div>
+
+    <!-- Details Drawer (Side Panel) -->
+    <div id="side-drawer" 
+         class="fixed inset-y-0 right-0 w-[450px] bg-white shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out border-l border-gray-200 z-50">
+        <!-- Content will be injected by HTMX -->
+    </div>
+
+    <script>
+        document.body.addEventListener('htmx:afterSwap', function(evt) {
+            if (evt.detail.target.id === 'side-drawer') {
+                evt.detail.target.classList.remove('translate-x-full');
+            }
+        });
+
+        document.body.addEventListener('taskUpdated', function() {
+            document.getElementById('side-drawer').classList.add('translate-x-full');
+            // Fast refresh the main content area
+            htmx.ajax('GET', window.location.pathname, {target: '#main-content', select: '#main-content'});
+        });
+    </script>
+</body>
+</html>

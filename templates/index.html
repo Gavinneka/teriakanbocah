@@ -1,0 +1,82 @@
+{{template "base.html" .}}
+
+{{define "content"}}
+<div class="px-4 py-6 sm:px-0">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <a href="/" class="text-sm text-blue-600 mb-1 hover:underline">&larr; Kembali ke Portal</a>
+            <h1 class="text-2xl font-semibold text-gray-900">Manajemen Perawatan AC</h1>
+        </div>
+    </div>
+
+    {{template "form" .}}
+
+    <div class="mb-8 bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+        <div class="flex items-center mb-4">
+            <svg class="h-5 w-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+            <h3 class="text-sm font-semibold text-gray-900">Filter Riwayat</h3>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Dari Tanggal</label>
+                <input type="date" 
+                       name="start_date" 
+                       value="{{.StartDate}}"
+                       hx-get="/ac" 
+                       hx-target="body" 
+                       hx-push-url="true"
+                       class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm bg-gray-50">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Sampai Tanggal</label>
+                <input type="date" 
+                       name="end_date" 
+                       value="{{.EndDate}}"
+                       hx-get="/ac" 
+                       hx-target="body" 
+                       hx-push-url="true"
+                       class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm bg-gray-50">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wide">Ruangan</label>
+                <select name="room" 
+                        hx-get="/ac" 
+                        hx-target="body" 
+                        hx-push-url="true"
+                        class="block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm bg-gray-50">
+                    <option value="">Semua Ruangan</option>
+                    {{range .Rooms}}
+                        <option value="{{.}}" {{if eq . $.FilterRoom}}selected{{end}}>{{.}}</option>
+                    {{end}}
+                </select>
+            </div>
+            <div class="flex items-end">
+                <a href="/ac" class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 w-full transition-colors">
+                    Reset Filter
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ruangan</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit AC (dari kiri ke kanan)</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kegiatan</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Catatan</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="record-list" class="bg-white divide-y divide-gray-200">
+                {{range .Records}}
+                    {{template "record_item" .}}
+                {{end}}
+            </tbody>
+        </table>
+    </div>
+</div>
+{{end}}
