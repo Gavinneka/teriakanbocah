@@ -99,12 +99,12 @@ func InitDB() {
 	// Hotfix: Add priority and is_archived
 	_, _ = DB.Exec("ALTER TABLE tasks ADD COLUMN priority TEXT DEFAULT 'medium';")
 	_, _ = DB.Exec("ALTER TABLE tasks ADD COLUMN is_archived BOOLEAN DEFAULT 0;")
-	
+
 	// User Management Enhancements
 	_, _ = DB.Exec("ALTER TABLE users ADD COLUMN last_login DATETIME;")
 	_, _ = DB.Exec("ALTER TABLE users ADD COLUMN is_active BOOLEAN DEFAULT 1;")
 	_, _ = DB.Exec("ALTER TABLE users ADD COLUMN allowed_modules TEXT DEFAULT 'ac,work';") // Comma-separated: ac,work,admin
-	
+
 	// Login Logs Table
 	_, _ = DB.Exec(`CREATE TABLE IF NOT EXISTS login_logs (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,

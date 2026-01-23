@@ -12,6 +12,31 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// Helper struct for common template data
+type BaseData struct {
+	Year           int
+	UserName       string
+	UserRole       string
+	AllowedModules string
+}
+
+func GetBaseData(r *http.Request) BaseData {
+	data := BaseData{
+		Year:     time.Now().Year(),
+		UserName: "Guest",
+	}
+	if c, err := r.Cookie("user_name"); err == nil {
+		data.UserName = c.Value
+	}
+	if c, err := r.Cookie("user_role"); err == nil {
+		data.UserRole = c.Value
+	}
+	if c, err := r.Cookie("user_modules"); err == nil {
+		data.AllowedModules = c.Value
+	}
+	return data
+}
+
 func GetRecords(w http.ResponseWriter, r *http.Request) {
 	if !CheckPermission(r, "ac", "view") {
 		http.Error(w, "Forbidden: No View Permission", http.StatusForbidden)
@@ -93,24 +118,17 @@ func GetRecords(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	username := "Guest"
-	role := ""
-	if c, err := r.Cookie("user_name"); err == nil {
-		username = c.Value
-	}
-	if c, err := r.Cookie("user_role"); err == nil {
-		role = c.Value
-	}
+	base := GetBaseData(r)
 
 	if err := tmpl.Execute(w, map[string]interface{}{
-		"Records":     records,
-		"Rooms":       rooms,
-		"StartDate":   startDate,
-		"EndDate":     endDate,
-		"FilterRoom":  room,
-		"Year":        time.Now().Year(),
-		"UserName":    username,
-		"UserRole":    role,
+		"Records":    records,
+		"Rooms":      rooms,
+		"StartDate":  startDate,
+		"EndDate":    endDate,
+		"FilterRoom": room,
+		"Year":       time.Now().Year(),
+		"UserName":   base.UserName,
+		"UserRole":   base.UserRole,
 	}); err != nil {
 		log.Println("Error executing template:", err)
 	}
@@ -174,6 +192,12 @@ func CreateRecord(w http.ResponseWriter, r *http.Request) {
 }
 
 func DashboardHandler(w http.ResponseWriter, r *http.Request) {
+	base := GetBaseData(r)
+	if base.UserName == "Guest" || base.UserName == "" {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
 	tmpl, err := template.New("dashboard.html").Funcs(template.FuncMap{
 		"contains": strings.Contains,
 	}).ParseFiles("templates/dashboard.html", "templates/base.html")
@@ -182,24 +206,11 @@ func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	username := ""
-	role := ""
-	allowedModules := ""
-	if c, err := r.Cookie("user_name"); err == nil {
-		username = c.Value
-	}
-	if c, err := r.Cookie("user_role"); err == nil {
-		role = c.Value
-	}
-	if c, err := r.Cookie("user_modules"); err == nil {
-		allowedModules = c.Value
-	}
-
 	tmpl.Execute(w, map[string]interface{}{
-		"Year":           time.Now().Year(),
-		"UserName":       username,
-		"UserRole":       role,
-		"AllowedModules": allowedModules,
+		"Year":           base.Year,
+		"UserName":       base.UserName,
+		"UserRole":       base.UserRole,
+		"AllowedModules": base.AllowedModules,
 	})
 }
 
@@ -292,7 +303,7 @@ func UpdateRecord(w http.ResponseWriter, r *http.Request) {
 
 	_, err := database.DB.Exec("UPDATE maintenance_records SET room=?, unit=?, activity=?, date=?, status=?, notes=? WHERE id=?",
 		room, r.FormValue("unit"), r.FormValue("activity"), date, r.FormValue("status"), r.FormValue("notes"), id)
-	
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -337,14 +348,14 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		if bcrypt.ErrMismatchedHashAndPassword != bcrypt.CompareHashAndPassword([]byte(dbPassword), []byte(password)) {
 			// Login Success - Update last_login and log activity
 			database.DB.Exec("UPDATE users SET last_login = datetime('now', 'localtime') WHERE id = ?", userID)
-			
+
 			// Log login activity
 			ipAddress := r.RemoteAddr
 			if forwarded := r.Header.Get("X-Forwarded-For"); forwarded != "" {
 				ipAddress = forwarded
 			}
 			database.DB.Exec("INSERT INTO login_logs(user_id, username, login_at, ip_address) VALUES(?, ?, datetime('now', 'localtime'), ?)", userID, username, ipAddress)
-			
+
 			http.SetCookie(w, &http.Cookie{
 				Name:  "session_token",
 				Value: "authenticated",
@@ -360,7 +371,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 				Value: username,
 				Path:  "/",
 			})
-			
+
 			// Store allowed modules
 			var allowedModules string
 			database.DB.QueryRow("SELECT COALESCE(allowed_modules, 'ac,work') FROM users WHERE id = ?", userID).Scan(&allowedModules)
@@ -369,32 +380,13 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 				Value: allowedModules,
 				Path:  "/",
 			})
-			
+
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 			return
 		}
 	}
 
-	// Fallback to hardcoded admin for legacy/backup (Optional, maybe remove later)
-	if username == "admin" && password == "admin123" {
-		http.SetCookie(w, &http.Cookie{
-			Name:  "session_token",
-			Value: "authenticated",
-			Path:  "/",
-		})
-		http.SetCookie(w, &http.Cookie{
-			Name:  "user_role",
-			Value: "master",
-			Path:  "/",
-		})
-		http.SetCookie(w, &http.Cookie{
-			Name:  "user_name",
-			Value: "Admin Legacy",
-			Path:  "/",
-		})
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-		return
-	}
+	// Fallback to hardcoded admin removed for security
 
 	tmpl, err := template.ParseFiles("templates/login.html", "templates/base.html")
 	if err != nil {
@@ -489,15 +481,6 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 		users = append(users, u)
 	}
 
-	username := "Guest"
-	role := ""
-	if c, err := r.Cookie("user_name"); err == nil {
-		username = c.Value
-	}
-	if c, err := r.Cookie("user_role"); err == nil {
-		role = c.Value
-	}
-
 	tmpl, err := template.New("admin_users.html").Funcs(template.FuncMap{
 		"contains": strings.Contains,
 	}).ParseFiles("templates/admin_users.html", "templates/base.html")
@@ -505,11 +488,12 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	base := GetBaseData(r)
 	tmpl.Execute(w, map[string]interface{}{
 		"Users":    users,
 		"Year":     time.Now().Year(),
-		"UserName": username,
-		"UserRole": role,
+		"UserName": base.UserName,
+		"UserRole": base.UserRole,
 	})
 }
 
@@ -588,7 +572,7 @@ func CheckPermission(r *http.Request, app, cap string) bool {
 	if cookie.Value == "master" {
 		return true
 	}
-	
+
 	usernameCookie, err := r.Cookie("user_name")
 	if err != nil {
 		return false
@@ -643,21 +627,21 @@ func EditUser(w http.ResponseWriter, r *http.Request) {
 		if r.FormValue("module_work") == "on" {
 			allowedModules = append(allowedModules, "work")
 		}
-		
+
 		// Check if user is master
 		var role string
 		database.DB.QueryRow("SELECT role FROM users WHERE id = ?", id).Scan(&role)
 		if role == "master" {
 			allowedModules = []string{"ac", "work", "admin"}
 		}
-		
+
 		modulesStr := strings.Join(allowedModules, ",")
 		_, err := database.DB.Exec("UPDATE users SET allowed_modules = ? WHERE id = ?", modulesStr, id)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		
+
 		http.Redirect(w, r, "/admin/users", http.StatusSeeOther)
 		return
 	}
@@ -678,30 +662,19 @@ func EditUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	username := ""
-	role := ""
-	if c, err := r.Cookie("user_name"); err == nil {
-		username = c.Value
-	}
-	if c, err := r.Cookie("user_role"); err == nil {
-		role = c.Value
-	}
+	base := GetBaseData(r)
 
 	tmpl.Execute(w, map[string]interface{}{
 		"User":     user,
 		"Year":     time.Now().Year(),
-		"UserName": username,
-		"UserRole": role,
+		"UserName": base.UserName,
+		"UserRole": base.UserRole,
 	})
 }
 
 func ProfilePage(w http.ResponseWriter, r *http.Request) {
-	username := ""
-	if c, err := r.Cookie("user_name"); err == nil {
-		username = c.Value
-	}
-
-	if username == "" {
+	base := GetBaseData(r)
+	if base.UserName == "Guest" || base.UserName == "" {
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
@@ -714,7 +687,7 @@ func ProfilePage(w http.ResponseWriter, r *http.Request) {
 		CreatedAt time.Time
 	}
 
-	err := database.DB.QueryRow("SELECT id, username, role, last_login, created_at FROM users WHERE username = ?", username).Scan(
+	err := database.DB.QueryRow("SELECT id, username, role, last_login, created_at FROM users WHERE username = ?", base.UserName).Scan(
 		&user.ID, &user.Username, &user.Role, &user.LastLogin, &user.CreatedAt,
 	)
 	if err != nil {
@@ -748,17 +721,12 @@ func ProfilePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	role := ""
-	if c, err := r.Cookie("user_role"); err == nil {
-		role = c.Value
-	}
-
 	tmpl.Execute(w, map[string]interface{}{
 		"User":      user,
 		"LoginLogs": loginLogs,
 		"Year":      time.Now().Year(),
-		"UserName":  username,
-		"UserRole":  role,
+		"UserName":  base.UserName,
+		"UserRole":  base.UserRole,
 	})
 }
 

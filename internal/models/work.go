@@ -14,17 +14,17 @@ type Task struct {
 	ID            int
 	Title         string
 	Outcome       string
-	Estimate      int // in minutes
-	Status        string // inbox, todo, doing, done
-	ProjectID     int // nullable (0 if null)
+	Estimate      int       // in minutes
+	Status        string    // inbox, todo, doing, done
+	ProjectID     int       // nullable (0 if null)
 	ScheduledDate time.Time // nullable
-	ProjectName   string // Joined field
+	ProjectName   string    // Joined field
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 	CompletedAt   *time.Time
 	Priority      string // low, medium, high
 	IsArchived    bool
-	
+
 	// Obstacle support
 	Obstacles          []Obstacle
 	OpenObstaclesCount int

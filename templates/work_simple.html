@@ -4,7 +4,7 @@
 <div class="max-w-5xl mx-auto py-8 px-4">
     <div class="mb-10 text-center">
         <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Simple Task Manager</h1>
-        <p class="mt-2 text-gray-500">Task, Proses/Kendala, dan Status.</p>
+        <p class="mt-2 text-gray-500">Task, Progres, dan Kendala.</p>
     </div>
 
     <!-- Quick Add Form -->
@@ -20,11 +20,36 @@
         </form>
     </div>
 
+    <!-- Active Obstacles Summary (Moved from Portal) -->
+    {{if .GlobalObstacles}}
+    <div class="mb-8 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg shadow-sm">
+        <div class="flex items-center mb-2">
+            <div class="flex-shrink-0">
+                <span class="text-xl">⚠️</span>
+            </div>
+            <div class="ml-3">
+                <h3 class="text-sm font-medium text-red-800">
+                    Kendala Aktif ({{len .GlobalObstacles}})
+                </h3>
+            </div>
+        </div>
+        <div class="ml-8 grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+            {{range .GlobalObstacles}}
+            <div class="text-sm text-red-700 bg-white/60 p-2 rounded border border-red-100">
+                <span class="font-bold text-gray-700 block text-xs uppercase">{{.TaskTitle}}</span>
+                {{.Description}}
+            </div>
+            {{end}}
+        </div>
+    </div>
+    {{end}}
+
     <!-- Filters & Search -->
     <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
         <div class="flex items-center space-x-2 bg-gray-100 p-1 rounded-lg">
             <a href="/work?filter=" class="px-4 py-1.5 rounded-md text-sm font-medium transition-colors {{if eq .Filter ""}}bg-white text-gray-900 shadow-sm{{else}}text-gray-500 hover:text-gray-900{{end}}">Aktif</a>
             <a href="/work?filter=done" class="px-4 py-1.5 rounded-md text-sm font-medium transition-colors {{if eq .Filter "done"}}bg-white text-gray-900 shadow-sm{{else}}text-gray-500 hover:text-gray-900{{end}}">Selesai</a>
+            <a href="/work?filter=kendala" class="px-4 py-1.5 rounded-md text-sm font-medium transition-colors {{if eq .Filter "kendala"}}bg-white text-gray-900 shadow-sm{{else}}text-gray-500 hover:text-gray-900{{end}}">Kendala</a>
             <a href="/work?filter=archived" class="px-4 py-1.5 rounded-md text-sm font-medium transition-colors {{if eq .Filter "archived"}}bg-white text-gray-900 shadow-sm{{else}}text-gray-500 hover:text-gray-900{{end}}">Arsip</a>
         </div>
         <form action="/work" method="GET" class="w-full sm:w-auto">
@@ -48,8 +73,9 @@
             <thead class="bg-gray-50/50">
                 <tr>
                     <th scope="col" class="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Aktivitas & Waktu</th>
-                    <th scope="col" class="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Proses / Kendala</th>
-                    <th scope="col" class="px-6 py-4 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest w-32">Status</th>
+                    <th scope="col" class="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Progress</th>
+                    <th scope="col" class="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Kendala</th>
+                    <th scope="col" class="px-6 py-4 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest w-24">Status</th>
                     <th scope="col" class="px-6 py-4 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest w-24">Aksi</th>
                 </tr>
             </thead>
@@ -83,12 +109,31 @@
                         </div>
                     </td>
                     <td class="px-6 py-5">
-                        <form action="/work/notes/{{.ID}}" method="POST" class="m-0">
-                            <input type="text" name="notes" value="{{.Outcome}}" 
-                                   class="w-full bg-transparent border-none focus:ring-1 focus:ring-blue-300 rounded-lg text-sm text-gray-600 italic placeholder-gray-300 transition-all hover:bg-white/50 py-1" 
+                        <form action="/work/notes/{{.ID}}" method="POST" class="m-0" x-data="{ 
+                            resize() { 
+                                this.$refs.textarea.style.height = 'auto'; 
+                                this.$refs.textarea.style.height = this.$refs.textarea.scrollHeight + 'px'; 
+                            } 
+                        }" x-init="resize()">
+                            <textarea name="notes" x-ref="textarea" @input="resize()"
+                                   class="w-full bg-transparent border-none focus:ring-1 focus:ring-blue-300 rounded-lg text-sm text-gray-600 italic placeholder-gray-300 transition-all hover:bg-white/50 py-1 resize-none overflow-hidden" 
                                    placeholder="Catat progres..."
-                                   onblur="if(this.value != this.defaultValue) this.form.submit()">
+                                   onblur="if(this.value != this.defaultValue) this.form.submit()">{{.Outcome}}</textarea>
                         </form>
+                    </td>
+                    <td class="px-6 py-5">
+                        {{if .Obstacles}}
+                        <div class="space-y-1">
+                            {{range .Obstacles}}
+                            <div class="flex items-start text-xs text-red-600 font-medium">
+                                <span class="mr-1 mt-0.5">⚠️</span>
+                                <span>{{.Description}}</span>
+                            </div>
+                            {{end}}
+                        </div>
+                        {{else}}
+                        <span class="text-[10px] text-gray-300 italic">Tidak ada</span>
+                        {{end}}
                     </td>
                     <td class="px-6 py-5 text-center">
                         <form action="/work/toggle/{{.ID}}" method="POST" class="m-0">
@@ -99,17 +144,27 @@
                         </form>
                     </td>
                     <td class="px-6 py-5 text-center">
-                        <a href="/work/edit/{{.ID}}" 
-                           class="inline-flex items-center justify-center p-2 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all opacity-0 group-hover:opacity-100">
-                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                        </a>
+                        <div class="flex items-center justify-center gap-2">
+                            <a href="/work/edit/{{.ID}}" 
+                               class="inline-flex items-center justify-center p-2 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all opacity-0 group-hover:opacity-100" title="Edit Task">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </a>
+                            <form action="/work/tasks/{{.ID}}/delete" method="POST" class="m-0" onsubmit="return confirm('Yakin ingin menghapus task ini?');">
+                                <button type="submit" 
+                                        class="inline-flex items-center justify-center p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100" title="Hapus Task">
+                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 {{else}}
                 <tr>
-                    <td colspan="4" class="px-6 py-20 text-center">
+                    <td colspan="5" class="px-6 py-20 text-center">
                         <div class="flex flex-col items-center">
                             <span class="text-4xl mb-4">✨</span>
                             <p class="text-sm text-gray-500 font-medium italic">Semua kerjaan sudah beres. Tambahkan task baru untuk memulai!</p>

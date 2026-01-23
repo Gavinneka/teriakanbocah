@@ -104,7 +104,7 @@ func parseDate(dateStr string, monthMap map[string]string) time.Time {
 		}
 		monthName := parts[1]
 		year := parts[2]
-		
+
 		monthNum, ok := monthMap[monthName]
 		if !ok {
 			return time.Now()

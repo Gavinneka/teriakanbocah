@@ -34,7 +34,6 @@
         </a>
         {{end}}
 
-        <!-- Work System Card -->
         {{if or (eq .UserRole "master") (contains .AllowedModules "work")}}
         <a href="/work" class="block group transform hover:-translate-y-1 transition duration-300">
             <div class="bg-white overflow-hidden shadow-lg rounded-xl border border-gray-100 group-hover:shadow-2xl transition-shadow">
@@ -60,5 +59,7 @@
         </a>
         {{end}}
     </div>
+
+
 </div>
 {{end}}

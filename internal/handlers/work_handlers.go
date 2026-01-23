@@ -15,11 +15,14 @@ func WorkDashboard(w http.ResponseWriter, r *http.Request) {
 	search := r.URL.Query().Get("q")
 
 	whereClause := "WHERE is_archived = 0"
-	if filter == "done" {
+	switch filter {
+	case "done":
 		whereClause = "WHERE status = 'done' AND is_archived = 0"
-	} else if filter == "archived" {
+	case "archived":
 		whereClause = "WHERE is_archived = 1"
-	} else {
+	case "kendala":
+		whereClause = "WHERE (SELECT COUNT(*) FROM task_obstacles WHERE task_id = t.id AND status = 'open') > 0 AND is_archived = 0"
+	default:
 		// default active
 		whereClause = "WHERE status != 'done' AND is_archived = 0"
 	}
@@ -37,7 +40,7 @@ func WorkDashboard(w http.ResponseWriter, r *http.Request) {
 		FROM tasks t ` + whereClause + ` ORDER BY 
 		CASE WHEN t.priority = 'high' THEN 1 WHEN t.priority = 'medium' THEN 2 ELSE 3 END, 
 		t.created_at DESC`
-	
+
 	rows, err := database.DB.Query(query, args...)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -47,11 +50,49 @@ func WorkDashboard(w http.ResponseWriter, r *http.Request) {
 
 	var tasks []models.Task
 	loc, _ := time.LoadLocation("Asia/Jakarta")
+
+	// Map to store obstacles by TaskID for the list
+	obstacleMap := make(map[int][]models.Obstacle)
+
+	// Slice for the global summary at the top
+	type ObstacleSummary struct {
+		TaskTitle   string
+		Description string
+	}
+	var globalObstacles []ObstacleSummary
+
+	// Fetch ALL open obstacles with Task Title
+	obsRows, err := database.DB.Query(`
+		SELECT o.id, o.task_id, o.description, o.status, t.title 
+		FROM task_obstacles o 
+		JOIN tasks t ON o.task_id = t.id 
+		WHERE o.status = 'open'
+		ORDER BY o.created_at DESC`)
+
+	if err == nil {
+		defer obsRows.Close()
+		for obsRows.Next() {
+			var o models.Obstacle
+			var tID int
+			var tTitle string
+
+			if err := obsRows.Scan(&o.ID, &tID, &o.Description, &o.Status, &tTitle); err == nil {
+				// Add to map for per-row display
+				obstacleMap[tID] = append(obstacleMap[tID], o)
+
+				// Add to slice for top summary
+				globalObstacles = append(globalObstacles, ObstacleSummary{
+					TaskTitle:   tTitle,
+					Description: o.Description,
+				})
+			}
+		}
+	}
+
 	for rows.Next() {
 		var t models.Task
 		// Scan new columns priority and is_archived
 		if err := rows.Scan(&t.ID, &t.Title, &t.Outcome, &t.Status, &t.Priority, &t.IsArchived, &t.CreatedAt, &t.UpdatedAt, &t.CompletedAt, &t.OpenObstaclesCount); err != nil {
-			// Handle NULL priority/is_archived if legacy rows exist without default (though ALTER sets default)
 			log.Println("Error scanning task:", err)
 			continue
 		}
@@ -62,6 +103,12 @@ func WorkDashboard(w http.ResponseWriter, r *http.Request) {
 			localComp := t.CompletedAt.In(loc)
 			t.CompletedAt = &localComp
 		}
+
+		// Assign obstacles from map (In-memory join)
+		if obs, ok := obstacleMap[t.ID]; ok {
+			t.Obstacles = obs
+		}
+
 		tasks = append(tasks, t)
 	}
 
@@ -71,22 +118,16 @@ func WorkDashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	username := "Guest"
-	role := ""
-	if c, err := r.Cookie("user_name"); err == nil {
-		username = c.Value
-	}
-	if c, err := r.Cookie("user_role"); err == nil {
-		role = c.Value
-	}
+	base := GetBaseData(r)
 
 	tmpl.Execute(w, map[string]interface{}{
-		"Tasks":    tasks,
-		"Filter":   filter,
-		"Search":   search,
-		"Year":     time.Now().Year(),
-		"UserName": username,
-		"UserRole": role,
+		"Tasks":           tasks,
+		"GlobalObstacles": globalObstacles,
+		"Filter":          filter,
+		"Search":          search,
+		"Year":            base.Year,
+		"UserName":        base.UserName,
+		"UserRole":        base.UserRole,
 	})
 }
 
@@ -208,20 +249,16 @@ func EditSimpleTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	username := "Guest"
-	role := ""
-	if c, err := r.Cookie("user_name"); err == nil {
-		username = c.Value
-	}
-	if c, err := r.Cookie("user_role"); err == nil {
-		role = c.Value
+	base := GetBaseData(r)
+	if base.UserName == "Guest" {
+		// Optional: Redirect if strict, or just render "Guest"
 	}
 
 	tmpl.Execute(w, map[string]interface{}{
 		"Task":     t,
-		"Year":     time.Now().Year(),
-		"UserName": username,
-		"UserRole": role,
+		"Year":     base.Year,
+		"UserName": base.UserName,
+		"UserRole": base.UserRole,
 	})
 }
 
