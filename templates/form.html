@@ -1,12 +1,14 @@
 {{define "form"}}
-<form hx-post="/ac/records" hx-target="#record-list" hx-swap="prepend" hx-on::after-request="this.reset(); document.getElementById('room_custom_div').style.display='none';" class="bg-white shadow sm:rounded-lg p-6 mb-8 border border-gray-100">
+<form hx-post="/ac/records" hx-target="#record-list" hx-swap="prepend"
+    hx-on::after-request="this.reset(); document.getElementById('room_custom_div').style.display='none';"
+    class="bg-white shadow rounded-xl p-4 sm:p-8 mb-8 border border-gray-100">
     <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
         <div class="sm:col-span-3">
             <label for="room" class="block text-sm font-medium text-gray-700">Ruangan</label>
             <div class="mt-1 flex gap-2 w-full">
-                <select id="room_select" name="room_select" 
-                        onchange="document.getElementById('room_custom_div').style.display = this.value === 'Lainnya' ? 'block' : 'none'; if(this.value!=='Lainnya') document.getElementById('room_custom').value='';"
-                        class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border">
+                <select id="room_select" name="room_select"
+                    onchange="document.getElementById('room_custom_div').style.display = this.value === 'Lainnya' ? 'block' : 'none'; if(this.value!=='Lainnya') document.getElementById('room_custom').value='';"
+                    class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border">
                     <option value="" disabled selected>Pilih Ruangan</option>
                     <option value="Lab">Lab</option>
                     <option value="FO">FO</option>
@@ -25,7 +27,8 @@
                 </select>
             </div>
             <div id="room_custom_div" class="mt-2" style="display: none;">
-                <input type="text" name="room_custom" id="room_custom" placeholder="Masukkan nama ruangan..." class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border">
+                <input type="text" name="room_custom" id="room_custom" placeholder="Masukkan nama ruangan..."
+                    class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border">
             </div>
         </div>
 
@@ -40,7 +43,8 @@
         <div class="sm:col-span-2">
             <label for="activity" class="block text-sm font-medium text-gray-700">Kegiatan</label>
             <div class="mt-1">
-                <select id="activity" name="activity" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border">
+                <select id="activity" name="activity"
+                    class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border">
                     <option>Cuci AC</option>
                     <option>Perbaikan</option>
                     <option>Isi Freon</option>
@@ -61,7 +65,8 @@
         <div class="sm:col-span-2">
             <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
             <div class="mt-1">
-                <select id="status" name="status" class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border">
+                <select id="status" name="status"
+                    class="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md p-2 border">
                     <option value="Selesai">Selesai</option>
                     <option value="Terjadwal">Terjadwal</option>
                     <option value="Menunggu">Menunggu</option>
@@ -77,7 +82,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="pt-5">
         <div class="flex justify-end">
             <button type="submit"
