@@ -44,6 +44,12 @@ func main() {
 
 	// Create Technician User (AC Tracker)
 	seedUser(db, "technician", "tech123", "user", "ac")
+
+	// Create Manager User (Both Modules)
+	seedUser(db, "manager", "manager123", "user", "ac,work")
+
+	// Create Admin User (Master Role)
+	seedUser(db, "admin", "admin123", "master", "ac,work,admin")
 }
 
 func seedUser(db *sql.DB, username, password, role, modules string) {
