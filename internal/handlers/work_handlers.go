@@ -3,6 +3,7 @@ package handlers
 import (
 	"ac_tracker/internal/database"
 	"ac_tracker/internal/models"
+	"database/sql"
 	"html/template"
 	"log"
 	"net/http"
@@ -35,7 +36,7 @@ func WorkDashboard(w http.ResponseWriter, r *http.Request) {
 
 	// Fetch with all timestamp fields and open obstacles count
 	query := `
-		SELECT t.id, t.title, COALESCE(t.outcome, '') as outcome, t.status, t.priority, t.is_archived, t.created_at, t.updated_at, t.completed_at,
+		SELECT t.id, t.title, COALESCE(t.outcome, '') as outcome, t.status, t.priority, t.is_archived, t.created_at, t.updated_at, t.completed_at, t.assigned_to, t.due_date,
 		(SELECT COUNT(*) FROM task_obstacles WHERE task_id = t.id AND status = 'open') as open_obstacles
 		FROM tasks t ` + whereClause + ` ORDER BY 
 		CASE WHEN t.priority = 'high' THEN 1 WHEN t.priority = 'medium' THEN 2 ELSE 3 END, 
@@ -91,8 +92,9 @@ func WorkDashboard(w http.ResponseWriter, r *http.Request) {
 
 	for rows.Next() {
 		var t models.Task
-		// Scan new columns priority and is_archived
-		if err := rows.Scan(&t.ID, &t.Title, &t.Outcome, &t.Status, &t.Priority, &t.IsArchived, &t.CreatedAt, &t.UpdatedAt, &t.CompletedAt, &t.OpenObstaclesCount); err != nil {
+		var dueTime sql.NullTime
+		// Scan new columns priority, is_archived, assigned_to, due_date
+		if err := rows.Scan(&t.ID, &t.Title, &t.Outcome, &t.Status, &t.Priority, &t.IsArchived, &t.CreatedAt, &t.UpdatedAt, &t.CompletedAt, &t.AssignedTo, &dueTime, &t.OpenObstaclesCount); err != nil {
 			log.Println("Error scanning task:", err)
 			continue
 		}
@@ -102,6 +104,10 @@ func WorkDashboard(w http.ResponseWriter, r *http.Request) {
 		if t.CompletedAt != nil {
 			localComp := t.CompletedAt.In(loc)
 			t.CompletedAt = &localComp
+		}
+		if dueTime.Valid {
+			localDue := dueTime.Time.In(loc)
+			t.DueDate = &localDue
 		}
 
 		// Assign obstacles from map (In-memory join)
@@ -120,9 +126,22 @@ func WorkDashboard(w http.ResponseWriter, r *http.Request) {
 
 	base := GetBaseData(r)
 
+	// Fetch users for Assignment dropdown
+	var users []string
+	userRows, _ := database.DB.Query("SELECT username FROM users WHERE is_active = 1 AND allowed_modules LIKE '%work%'")
+	if userRows != nil {
+		defer userRows.Close()
+		for userRows.Next() {
+			var u string
+			userRows.Scan(&u)
+			users = append(users, u)
+		}
+	}
+
 	tmpl.Execute(w, map[string]interface{}{
 		"Tasks":           tasks,
 		"GlobalObstacles": globalObstacles,
+		"Users":           users,
 		"Filter":          filter,
 		"Search":          search,
 		"Year":            base.Year,
@@ -138,12 +157,20 @@ func CreateSimpleTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	title := r.FormValue("title")
+	assignedTo := r.FormValue("assigned_to")
+	dueDate := r.FormValue("due_date")
+	
 	if title == "" {
 		http.Error(w, "Task required", http.StatusBadRequest)
 		return
 	}
 
-	_, err := database.DB.Exec("INSERT INTO tasks(title, outcome, status, priority, is_archived, created_at, updated_at) VALUES(?, '', 'todo', 'medium', 0, datetime('now', 'localtime'), datetime('now', 'localtime'))", title)
+	var due interface{}
+	if dueDate != "" {
+		due = dueDate
+	}
+
+	_, err := database.DB.Exec("INSERT INTO tasks(title, outcome, status, priority, assigned_to, due_date, is_archived, created_at, updated_at) VALUES(?, '', 'todo', 'medium', ?, ?, 0, datetime('now', 'localtime'), datetime('now', 'localtime'))", title, assignedTo, due)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -201,6 +228,13 @@ func EditSimpleTask(w http.ResponseWriter, r *http.Request) {
 		notes := r.FormValue("notes")
 		status := r.FormValue("status")
 		priority := r.FormValue("priority")
+		assignedTo := r.FormValue("assigned_to")
+		dueDate := r.FormValue("due_date")
+
+		var due interface{}
+		if dueDate != "" {
+			due = dueDate
+		}
 
 		compAt := ""
 		if status == "done" {
@@ -209,8 +243,8 @@ func EditSimpleTask(w http.ResponseWriter, r *http.Request) {
 			compAt = ", completed_at = NULL"
 		}
 
-		query := "UPDATE tasks SET title = ?, outcome = ?, status = ?, priority = ?, updated_at = datetime('now', 'localtime')" + compAt + " WHERE id = ?"
-		_, err := database.DB.Exec(query, title, notes, status, priority, id)
+		query := "UPDATE tasks SET title = ?, outcome = ?, status = ?, priority = ?, assigned_to = ?, due_date = ?, updated_at = datetime('now', 'localtime')" + compAt + " WHERE id = ?"
+		_, err := database.DB.Exec(query, title, notes, status, priority, assignedTo, due, id)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -220,10 +254,16 @@ func EditSimpleTask(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var t models.Task
-	err := database.DB.QueryRow("SELECT id, title, COALESCE(outcome, '') as outcome, status, priority FROM tasks WHERE id = ?", id).Scan(&t.ID, &t.Title, &t.Outcome, &t.Status, &t.Priority)
+	var dueTime sql.NullTime
+	err := database.DB.QueryRow("SELECT id, title, COALESCE(outcome, '') as outcome, status, priority, assigned_to, due_date FROM tasks WHERE id = ?", id).Scan(&t.ID, &t.Title, &t.Outcome, &t.Status, &t.Priority, &t.AssignedTo, &dueTime)
 	if err != nil {
 		http.Error(w, "Task not found", http.StatusNotFound)
 		return
+	}
+	if dueTime.Valid {
+		loc, _ := time.LoadLocation("Asia/Jakarta")
+		localDue := dueTime.Time.In(loc)
+		t.DueDate = &localDue
 	}
 
 	// Fetch obstacles
@@ -254,8 +294,20 @@ func EditSimpleTask(w http.ResponseWriter, r *http.Request) {
 		// Optional: Redirect if strict, or just render "Guest"
 	}
 
+	var users []string
+	userRows, _ := database.DB.Query("SELECT username FROM users WHERE is_active = 1 AND allowed_modules LIKE '%work%'")
+	if userRows != nil {
+		defer userRows.Close()
+		for userRows.Next() {
+			var u string
+			userRows.Scan(&u)
+			users = append(users, u)
+		}
+	}
+
 	tmpl.Execute(w, map[string]interface{}{
 		"Task":     t,
+		"Users":    users,
 		"Year":     base.Year,
 		"UserName": base.UserName,
 		"UserRole": base.UserRole,

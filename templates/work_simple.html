@@ -18,6 +18,16 @@
             <input type="text" name="title" required
                 class="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-600 sm:text-sm"
                 placeholder="Apa yang ingin dikerjakan? (Default: Priority Medium)">
+            
+            <select name="assigned_to" class="w-full sm:w-32 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-600 sm:text-sm text-gray-600">
+                <option value="">- Assign -</option>
+                {{range $.Users}}
+                <option value="{{.}}">{{.}}</option>
+                {{end}}
+            </select>
+            
+            <input type="date" name="due_date" class="w-full sm:w-40 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-600 sm:text-sm text-gray-600 cursor-pointer" title="Deadline">
+
             <button type="submit"
                 class="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
                 Tambah Task
@@ -122,7 +132,13 @@
                                 </div>
                             </div>
                             <div
-                                class="ml-4 mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-gray-400 font-medium items-center">
+                                class="ml-4 mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-gray-400 font-medium items-center">
+                                {{if .AssignedTo}}
+                                <span class="bg-blue-50 text-blue-700 font-bold px-1.5 py-0.5 rounded border border-blue-200" title="Ditugaskan kepada">👤 {{.AssignedTo}}</span>
+                                {{end}}
+                                {{if .DueDate}}
+                                <span class="bg-orange-50 text-orange-700 font-bold px-1.5 py-0.5 rounded border border-orange-200" title="Deadline">⏰ {{.DueDate.Format "02 Jan 2006"}}</span>
+                                {{end}}
                                 <span title="Dibuat pada">➕ {{.CreatedAt.Format "02 Jan, 15:04"}}</span>
                                 <span title="Terakhir diupdate">✏️ {{.UpdatedAt.Format "15:04"}}</span>
                                 {{if .CompletedAt}}

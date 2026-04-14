@@ -9,5 +9,6 @@ type MaintenanceRecord struct {
 	Activity string    `json:"activity"`
 	Date     time.Time `json:"date"`
 	Status   string    `json:"status"` // Scheduled, Completed, Pending
-	Notes    string    `json:"notes"`
+	Notes           string    `json:"notes"`
+	NextServiceDate *time.Time `json:"next_service_date"`
 }

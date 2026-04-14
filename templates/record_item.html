@@ -1,6 +1,11 @@
 {{define "record_item"}}
 <tr class="bg-white hover:bg-gray-50 transition-colors">
-    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{.Date.Format "2006-01-02"}}</td>
+    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+        {{.Date.Format "02 Jan 2006"}}
+        {{if .NextServiceDate}}
+        <div class="mt-1 text-[10px] text-orange-600 font-bold tracking-wider">NEXT: {{.NextServiceDate.Format "02 Jan 2006"}}</div>
+        {{end}}
+    </td>
     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{.Room}}</td>
     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{.Unit}}</td>
     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

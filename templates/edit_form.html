@@ -1,5 +1,5 @@
 <form hx-put="/ac/records/{{.Record.ID}}" hx-target="closest tr" hx-swap="outerHTML" class="bg-blue-50 p-4 rounded-lg border border-blue-200 shadow-inner">
-    <div class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-6">
+    <div class="grid grid-cols-1 gap-y-4 gap-x-4 sm:grid-cols-7">
         <div class="sm:col-span-1">
             <label class="block text-xs font-medium text-gray-700">Tanggal</label>
             <input type="date" name="date" value="{{.Record.Date.Format "2006-01-02"}}" max="2100-12-31" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
@@ -33,6 +33,10 @@
         <div class="sm:col-span-1">
             <label class="block text-xs font-medium text-gray-700">Catatan</label>
             <input type="text" name="notes" value="{{.Record.Notes}}" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+        </div>
+        <div class="sm:col-span-1">
+            <label class="block text-xs font-medium text-gray-700">Service Berikutnya</label>
+            <input type="date" name="next_service_date" value="{{if .Record.NextServiceDate}}{{.Record.NextServiceDate.Format "2006-01-02"}}{{end}}" max="2100-12-31" class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
         </div>
     </div>
     <div class="mt-4 flex justify-end space-x-2">

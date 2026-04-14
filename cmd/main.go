@@ -40,6 +40,7 @@ func main() {
 	http.HandleFunc("POST /admin/users/{id}/edit", handlers.AuthMiddleware(handlers.MasterMiddleware(handlers.EditUser)))
 	http.HandleFunc("DELETE /admin/users/{id}", handlers.AuthMiddleware(handlers.MasterMiddleware(handlers.DeleteUser)))
 	http.HandleFunc("POST /admin/users/{id}/toggle", handlers.AuthMiddleware(handlers.MasterMiddleware(handlers.ToggleUserStatus)))
+	http.HandleFunc("POST /admin/users/{id}/reset_pass", handlers.AuthMiddleware(handlers.MasterMiddleware(handlers.AdminResetUserPassword)))
 
 	// Work System Routes (Module-protected)
 	http.HandleFunc("GET /work", handlers.AuthMiddleware(handlers.ModuleMiddleware("work")(handlers.WorkDashboard)))

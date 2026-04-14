@@ -42,6 +42,22 @@
                         <option value="low" {{if eq .Task.Priority "low" }}selected{{end}}>Low (Santai)</option>
                     </select>
                 </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Ditugaskan Kepada</label>
+                    <select name="assigned_to"
+                        class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
+                        <option value="">-- Bebas / Kosong --</option>
+                        {{range $.Users}}
+                        <option value="{{.}}" {{if eq $.Task.AssignedTo . }}selected{{end}}>{{.}}</option>
+                        {{end}}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Tenggat Waktu / Deadline</label>
+                    <input type="date" name="due_date"
+                        class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm cursor-pointer"
+                        value="{{if .Task.DueDate}}{{.Task.DueDate.Format "2006-01-02"}}{{end}}">
+                </div>
             </div>
 
             <div class="pt-6 border-t border-gray-100">

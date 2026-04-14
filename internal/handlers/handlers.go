@@ -3,6 +3,7 @@ package handlers
 import (
 	"ac_tracker/internal/database"
 	"ac_tracker/internal/models"
+	"database/sql"
 	"html/template"
 	"log"
 	"net/http"
@@ -46,7 +47,7 @@ func GetRecords(w http.ResponseWriter, r *http.Request) {
 	endDate := r.URL.Query().Get("end_date")
 	room := r.URL.Query().Get("room")
 
-	query := "SELECT id, room, unit, activity, date, status, notes FROM maintenance_records WHERE 1=1"
+	query := "SELECT id, room, unit, activity, date, status, notes, next_service_date FROM maintenance_records WHERE 1=1"
 	args := []interface{}{}
 
 	if startDate != "" {
@@ -88,9 +89,13 @@ func GetRecords(w http.ResponseWriter, r *http.Request) {
 	var records []models.MaintenanceRecord
 	for rows.Next() {
 		var rec models.MaintenanceRecord
-		if err := rows.Scan(&rec.ID, &rec.Room, &rec.Unit, &rec.Activity, &rec.Date, &rec.Status, &rec.Notes); err != nil {
+		var nsd sql.NullTime
+		if err := rows.Scan(&rec.ID, &rec.Room, &rec.Unit, &rec.Activity, &rec.Date, &rec.Status, &rec.Notes, &nsd); err != nil {
 			log.Println("Error scanning row:", err)
 			continue
+		}
+		if nsd.Valid {
+			rec.NextServiceDate = &nsd.Time
 		}
 		records = append(records, rec)
 	}
@@ -165,12 +170,22 @@ func CreateRecord(w http.ResponseWriter, r *http.Request) {
 		Notes:    r.FormValue("notes"),
 	}
 
-	stmt, err := database.DB.Prepare("INSERT INTO maintenance_records(room, unit, activity, date, status, notes) VALUES(?, ?, ?, ?, ?, ?)")
+	nextDateStr := r.FormValue("next_service_date")
+	var nsd interface{}
+	if nextDateStr != "" {
+		nd, err := time.Parse("2006-01-02", nextDateStr)
+		if err == nil {
+			nsd = nd
+			record.NextServiceDate = &nd
+		}
+	}
+
+	stmt, err := database.DB.Prepare("INSERT INTO maintenance_records(room, unit, activity, date, status, notes, next_service_date) VALUES(?, ?, ?, ?, ?, ?, ?)")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	res, err := stmt.Exec(record.Room, record.Unit, record.Activity, record.Date, record.Status, record.Notes)
+	res, err := stmt.Exec(record.Room, record.Unit, record.Activity, record.Date, record.Status, record.Notes, nsd)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -251,12 +266,16 @@ func EditRecord(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var rec models.MaintenanceRecord
-	err := database.DB.QueryRow("SELECT id, room, unit, activity, date, status, notes FROM maintenance_records WHERE id = ?", id).Scan(
-		&rec.ID, &rec.Room, &rec.Unit, &rec.Activity, &rec.Date, &rec.Status, &rec.Notes,
+	var nsd sql.NullTime
+	err := database.DB.QueryRow("SELECT id, room, unit, activity, date, status, notes, next_service_date FROM maintenance_records WHERE id = ?", id).Scan(
+		&rec.ID, &rec.Room, &rec.Unit, &rec.Activity, &rec.Date, &rec.Status, &rec.Notes, &nsd,
 	)
 	if err != nil {
 		http.Error(w, "Record not found", http.StatusNotFound)
 		return
+	}
+	if nsd.Valid {
+		rec.NextServiceDate = &nsd.Time
 	}
 
 	// Filter rooms for dropdown
@@ -301,8 +320,17 @@ func UpdateRecord(w http.ResponseWriter, r *http.Request) {
 		room = r.FormValue("room_custom")
 	}
 
-	_, err := database.DB.Exec("UPDATE maintenance_records SET room=?, unit=?, activity=?, date=?, status=?, notes=? WHERE id=?",
-		room, r.FormValue("unit"), r.FormValue("activity"), date, r.FormValue("status"), r.FormValue("notes"), id)
+	nextDateStr := r.FormValue("next_service_date")
+	var nsd interface{}
+	if nextDateStr != "" {
+		nd, err := time.Parse("2006-01-02", nextDateStr)
+		if err == nil {
+			nsd = nd
+		}
+	}
+
+	_, err := database.DB.Exec("UPDATE maintenance_records SET room=?, unit=?, activity=?, date=?, status=?, notes=?, next_service_date=? WHERE id=?",
+		room, r.FormValue("unit"), r.FormValue("activity"), date, r.FormValue("status"), r.FormValue("notes"), nsd, id)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -311,9 +339,13 @@ func UpdateRecord(w http.ResponseWriter, r *http.Request) {
 
 	// Fetch updated record to render row
 	var rec models.MaintenanceRecord
-	database.DB.QueryRow("SELECT id, room, unit, activity, date, status, notes FROM maintenance_records WHERE id = ?", id).Scan(
-		&rec.ID, &rec.Room, &rec.Unit, &rec.Activity, &rec.Date, &rec.Status, &rec.Notes,
+	var nsd2 sql.NullTime
+	database.DB.QueryRow("SELECT id, room, unit, activity, date, status, notes, next_service_date FROM maintenance_records WHERE id = ?", id).Scan(
+		&rec.ID, &rec.Room, &rec.Unit, &rec.Activity, &rec.Date, &rec.Status, &rec.Notes, &nsd2,
 	)
+	if nsd2.Valid {
+		rec.NextServiceDate = &nsd2.Time
+	}
 
 	tmpl, err := template.ParseFiles("templates/record_item.html")
 	if err != nil {
@@ -609,6 +641,34 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+}
+
+func AdminResetUserPassword(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	id := r.PathValue("id")
+	if id == "" {
+		http.Error(w, "Missing ID", http.StatusBadRequest)
+		return
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
+	if err != nil {
+		http.Error(w, "Error generating password", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = database.DB.Exec("UPDATE users SET password = ? WHERE id = ?", string(hash), id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// For HTMX, we can return a simple success text or refresh
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Password direset ke 123456"))
 }
 
 func EditUser(w http.ResponseWriter, r *http.Request) {

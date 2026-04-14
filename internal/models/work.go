@@ -22,6 +22,8 @@ type Task struct {
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 	CompletedAt   *time.Time
+	AssignedTo    string     // Empty if unassigned
+	DueDate       *time.Time // Nullable deadline
 	Priority      string // low, medium, high
 	IsArchived    bool
 

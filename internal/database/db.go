@@ -105,6 +105,13 @@ func InitDB() {
 	_, _ = DB.Exec("ALTER TABLE users ADD COLUMN is_active BOOLEAN DEFAULT 1;")
 	_, _ = DB.Exec("ALTER TABLE users ADD COLUMN allowed_modules TEXT DEFAULT 'ac,work';") // Comma-separated: ac,work,admin
 
+	// Feature Enhancements: Next Service Date
+	_, _ = DB.Exec("ALTER TABLE maintenance_records ADD COLUMN next_service_date DATETIME;")
+	
+	// Feature Enhancements: Task Assignments and Due Dates
+	_, _ = DB.Exec("ALTER TABLE tasks ADD COLUMN assigned_to TEXT DEFAULT '';")
+	_, _ = DB.Exec("ALTER TABLE tasks ADD COLUMN due_date DATETIME;")
+
 	// Login Logs Table
 	_, _ = DB.Exec(`CREATE TABLE IF NOT EXISTS login_logs (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
