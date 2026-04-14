@@ -97,12 +97,10 @@
             <!-- Obstacles List -->
             <div class="space-y-4">
                 {{range .Task.Obstacles}}
-                <div class="flex items-start justify-between p-4 rounded-xl border {{if eq .Status "
-                    resolved"}}bg-green-50/20 border-green-100 opacity-60{{else}}bg-white border-gray-100
+                <div class="flex items-start justify-between p-4 rounded-xl border {{if eq .Status "resolved"}}bg-green-50/20 border-green-100 opacity-60{{else}}bg-white border-gray-100
                     shadow-sm{{end}}">
                     <div class="flex-1">
-                        <p class="text-sm font-medium {{if eq .Status " resolved"}}line-through
-                            text-gray-400{{else}}text-gray-900{{end}}">
+                        <p class="text-sm font-medium {{if eq .Status "resolved"}}line-through text-gray-400{{else}}text-gray-900{{end}}">
                             {{.Description}}
                         </p>
                         <div class="mt-1 flex items-center gap-3 text-[10px] text-gray-400">
@@ -114,9 +112,8 @@
                     </div>
                     <div class="ml-4 flex items-center gap-2">
                         <form action="/work/tasks/{{$.Task.ID}}/obstacles/{{.ID}}/resolve" method="POST" class="m-0">
-                            <button type="submit" class="p-2 rounded-lg transition-colors {{if eq .Status "
-                                resolved"}}text-green-600 hover:bg-green-100{{else}}text-gray-300 hover:text-green-500
-                                hover:bg-green-50{{end}}" title="{{if eq .Status " resolved"}}Buka
+                            <button type="submit" class="p-2 rounded-lg transition-colors {{if eq .Status "resolved"}}text-green-600 hover:bg-green-100{{else}}text-gray-300 hover:text-green-500
+                                hover:bg-green-50{{end}}" title="{{if eq .Status "resolved"}}Buka
                                 kembali{{else}}Selesaikan kendala{{end}}">
                                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
