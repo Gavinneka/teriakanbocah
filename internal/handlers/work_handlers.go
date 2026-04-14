@@ -36,7 +36,7 @@ func WorkDashboard(w http.ResponseWriter, r *http.Request) {
 
 	// Fetch with all timestamp fields and open obstacles count
 	query := `
-		SELECT t.id, t.title, COALESCE(t.outcome, '') as outcome, t.status, t.priority, t.is_archived, t.created_at, t.updated_at, t.completed_at, t.assigned_to, t.due_date,
+		SELECT t.id, t.title, COALESCE(t.outcome, '') as outcome, t.status, t.priority, t.is_archived, t.created_at, t.updated_at, t.completed_at, COALESCE(t.assigned_to, '') as assigned_to, t.due_date,
 		(SELECT COUNT(*) FROM task_obstacles WHERE task_id = t.id AND status = 'open') as open_obstacles
 		FROM tasks t ` + whereClause + ` ORDER BY 
 		CASE WHEN t.priority = 'high' THEN 1 WHEN t.priority = 'medium' THEN 2 ELSE 3 END, 
@@ -255,7 +255,7 @@ func EditSimpleTask(w http.ResponseWriter, r *http.Request) {
 
 	var t models.Task
 	var dueTime sql.NullTime
-	err := database.DB.QueryRow("SELECT id, title, COALESCE(outcome, '') as outcome, status, priority, assigned_to, due_date FROM tasks WHERE id = ?", id).Scan(&t.ID, &t.Title, &t.Outcome, &t.Status, &t.Priority, &t.AssignedTo, &dueTime)
+	err := database.DB.QueryRow("SELECT id, title, COALESCE(outcome, '') as outcome, status, priority, COALESCE(assigned_to, '') as assigned_to, due_date FROM tasks WHERE id = ?", id).Scan(&t.ID, &t.Title, &t.Outcome, &t.Status, &t.Priority, &t.AssignedTo, &dueTime)
 	if err != nil {
 		http.Error(w, "Task not found", http.StatusNotFound)
 		return
