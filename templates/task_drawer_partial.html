@@ -1,62 +1,212 @@
-<div class="h-full flex flex-col bg-white">
+<div class="h-full flex flex-col bg-white" x-data="{ activeTab: 'details' }">
     <!-- Drawer Header -->
-    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-        <h3 class="text-lg font-bold text-gray-900">Task Details</h3>
-        <button onclick="document.getElementById('side-drawer').classList.add('translate-x-full')" class="text-gray-400 hover:text-gray-600">
+    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+        <div>
+            <span class="text-xs font-bold text-blue-600 bg-blue-50 border border-blue-100 rounded px-2 py-0.5 uppercase tracking-wide">Task #{{.Task.ID}}</span>
+            <h3 class="text-base font-bold text-gray-900 mt-1">Detail Pekerjaan</h3>
+        </div>
+        <button onclick="document.getElementById('side-drawer').classList.add('translate-x-full')" class="text-gray-400 hover:text-gray-600 cursor-pointer">
             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
     </div>
 
-    <!-- Drawer Content -->
-    <div class="flex-1 overflow-y-auto p-6">
-        <form hx-put="/work/tasks/{{.Task.ID}}" hx-swap="none" class="space-y-6">
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Title</label>
-                <input type="text" name="title" value="{{.Task.Title}}" class="w-full border-none focus:ring-2 focus:ring-blue-500 rounded-md text-xl font-bold p-2 -ml-2" placeholder="Task summary...">
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Outcome (Definition of Done)</label>
-                <textarea name="outcome" rows="3" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="What does 'done' look like?">{{.Task.Outcome}}</textarea>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Status</label>
-                    <select name="status" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
-                        <option value="inbox" {{if eq .Task.Status "inbox"}}selected{{end}}>Inbox</option>
-                        <option value="todo" {{if eq .Task.Status "todo"}}selected{{end}}>Todo</option>
-                        <option value="doing" {{if eq .Task.Status "doing"}}selected{{end}}>Doing</option>
-                        <option value="done" {{if eq .Task.Status "done"}}selected{{end}}>Done</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Estimate (Min)</label>
-                    <input type="number" name="estimate" value="{{.Task.Estimate}}" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm" placeholder="Min">
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Project</label>
-                <select name="project_id" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm">
-                    <option value="0">No Project</option>
-                    {{range .Projects}}
-                    <option value="{{.ID}}" {{if eq $.Task.ProjectID .ID}}selected{{end}}>{{.Name}}</option>
-                    {{end}}
-                </select>
-            </div>
-
-            <div class="pt-6 border-t border-gray-100 flex justify-end">
-                <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-6 rounded hover:bg-blue-700 transition-colors">
-                    Save Changes
-                </button>
-            </div>
-        </form>
+    <!-- Tab Navigation -->
+    <div class="flex border-b border-gray-200 text-sm">
+        <button @click="activeTab = 'details'"
+            :class="activeTab === 'details' ? 'border-blue-600 text-blue-600 font-bold border-b-2' : 'text-gray-500 hover:text-gray-700'"
+            class="flex-1 py-3 text-center cursor-pointer">
+            Informasi Utama
+        </button>
+        <button @click="activeTab = 'subtasks'"
+            :class="activeTab === 'subtasks' ? 'border-blue-600 text-blue-600 font-bold border-b-2' : 'text-gray-500 hover:text-gray-700'"
+            class="flex-1 py-3 text-center relative cursor-pointer">
+            Subtask ({{len .Task.Details}})
+            {{if .Task.OpenObstaclesCount}}
+            <span class="absolute right-3 top-3 h-2 w-2 rounded-full bg-red-500 animate-pulse"></span>
+            {{end}}
+        </button>
     </div>
 
-    <!-- Activity Footer (Mock) -->
-    <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
-        <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Metadata</p>
-        <p class="text-xs text-gray-500 mt-1 italic">Last updated: {{.Task.UpdatedAt.Format "Jan 02, 15:04"}}</p>
+    <!-- Drawer Content Area -->
+    <div class="flex-1 overflow-y-auto p-6">
+
+        <!-- Tab 1: Details -->
+        <div x-show="activeTab === 'details'" class="space-y-6">
+            <form hx-put="/work/tasks/{{.Task.ID}}" hx-swap="none" class="space-y-5">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Judul / Aktivitas</label>
+                    <input type="text" name="title" value="{{.Task.Title}}" required
+                        class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm p-2.5 border">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Target Hasil (Outcome)</label>
+                    <textarea name="outcome" rows="3"
+                        class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm p-2.5 border"
+                        placeholder="Apa target selesai dari tugas ini?">{{.Task.Outcome}}</textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Status</label>
+                        <select name="status" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm p-2.5 border bg-white">
+                            <option value="inbox" {{if eq .Task.Status "inbox"}}selected{{end}}>Inbox</option>
+                            <option value="todo" {{if eq .Task.Status "todo"}}selected{{end}}>Proses (Todo)</option>
+                            <option value="doing" {{if eq .Task.Status "doing"}}selected{{end}}>Sedang Dikerjakan</option>
+                            <option value="done" {{if eq .Task.Status "done"}}selected{{end}}>Selesai</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Prioritas</label>
+                        <select name="priority" class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm p-2.5 border bg-white">
+                            <option value="high" {{if eq .Task.Priority "high"}}selected{{end}}>High (Penting!)</option>
+                            <option value="medium" {{if eq .Task.Priority "medium"}}selected{{end}}>Medium (Normal)</option>
+                            <option value="low" {{if eq .Task.Priority "low"}}selected{{end}}>Low (Santai)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Tenggat Waktu</label>
+                        <input type="date" name="due_date" value="{{if .Task.DueDate}}{{.Task.DueDate.Format "2006-01-02"}}{{end}}"
+                            class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm p-2.5 border cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Estimasi (Menit)</label>
+                        <input type="number" name="estimate" value="{{.Task.Estimate}}"
+                            class="w-full border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm p-2.5 border">
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-gray-100 flex justify-end">
+                    <button type="submit" class="bg-blue-600 text-white font-bold py-2.5 px-6 rounded-lg hover:bg-blue-700 transition-colors shadow-sm text-sm cursor-pointer">
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tab 2: Subtasks -->
+        <div x-show="activeTab === 'subtasks'" class="space-y-6">
+
+            <!-- Quick Add Subtask -->
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 shadow-inner">
+                <h4 class="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Tambah Subtask Baru</h4>
+                <form hx-post="/work/tasks/{{.Task.ID}}/details" hx-target="#side-drawer" class="flex gap-2">
+                    <input type="hidden" name="redirect" value="drawer">
+                    <input type="text" name="description" required
+                        class="flex-1 border border-gray-300 rounded-lg text-xs p-2 focus:ring-blue-400 focus:border-blue-400 bg-white"
+                        placeholder="Masukkan nama rincian kerja...">
+                    <button type="submit" class="bg-blue-600 text-white font-bold px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-xs cursor-pointer">
+                        Tambah
+                    </button>
+                </form>
+            </div>
+
+            <!-- List of Subtasks -->
+            <div class="space-y-3">
+                {{range .Task.Details}}
+                <div x-data="{ editing: false }" class="p-4 rounded-xl border border-gray-200 bg-white shadow-sm hover:border-blue-150 transition-colors">
+
+                    <!-- View Mode -->
+                    <div x-show="!editing" class="space-y-2">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-2.5 flex-1 min-w-0">
+                                <form hx-post="/work/tasks/{{$.Task.ID}}/details/{{.ID}}/toggle" hx-target="#side-drawer" class="m-0 flex-shrink-0">
+                                    <input type="hidden" name="redirect" value="drawer">
+                                    <button type="submit" class="w-5 h-5 rounded border flex items-center justify-center transition-all cursor-pointer {{if .IsDone}}bg-emerald-500 border-emerald-500 hover:bg-emerald-600{{else}}border-gray-300 hover:border-blue-400 bg-white{{end}}">
+                                        {{if .IsDone}}
+                                        <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        {{end}}
+                                    </button>
+                                </form>
+                                <span class="text-xs font-bold truncate {{if .IsDone}}line-through text-gray-400{{else}}text-gray-900{{end}}">{{.Description}}</span>
+                            </div>
+                            <div class="flex items-center gap-1 flex-shrink-0">
+                                <button @click="editing = true" class="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors cursor-pointer" title="Edit subtask">
+                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                </button>
+                                <button hx-post="/work/tasks/{{$.Task.ID}}/details/{{.ID}}/delete" hx-target="#side-drawer" hx-vals='{"redirect": "drawer"}' hx-confirm="Yakin menghapus subtask ini?" class="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors cursor-pointer" title="Hapus subtask">
+                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Progress and Obstacle Status -->
+                        <div class="grid grid-cols-1 gap-2 pt-2 border-t border-gray-50 text-[11px]">
+                            {{if .Progress}}
+                            <div class="flex items-center gap-1.5">
+                                <span class="font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">Progres:</span>
+                                <span class="text-gray-600">{{.Progress}}</span>
+                            </div>
+                            {{end}}
+
+                            <div class="flex items-start gap-1.5 flex-wrap">
+                                <form hx-post="/work/tasks/{{$.Task.ID}}/details/{{.ID}}/toggle-obstacle" hx-target="#side-drawer" class="m-0 flex-shrink-0">
+                                    <input type="hidden" name="redirect" value="drawer">
+                                    <button type="submit" class="text-[9px] font-bold px-1.5 py-0.5 rounded border transition-colors cursor-pointer {{if .ObstacleResolved}}bg-green-50 text-green-700 border-green-200 hover:bg-green-100{{else if .Obstacle}}bg-red-50 text-red-600 border-red-200 hover:bg-red-100{{else}}bg-gray-50 text-gray-400 border-gray-200 hover:bg-gray-100{{end}}">
+                                        {{if .ObstacleResolved}}✓ Teratasi{{else if .Obstacle}}! Kendala{{else}}+ Buat Kendala{{end}}
+                                    </button>
+                                </form>
+                                {{if .Obstacle}}
+                                <span class="flex-1 min-w-0 {{if .ObstacleResolved}}line-through text-gray-400{{else}}text-red-600 font-medium{{end}}">
+                                    {{.Obstacle}}
+                                </span>
+                                {{end}}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Edit Mode (Inline Form) -->
+                    <div x-show="editing" style="display: none;">
+                        <form hx-post="/work/tasks/{{$.Task.ID}}/details/{{.ID}}/edit" hx-target="#side-drawer" class="space-y-3">
+                            <input type="hidden" name="redirect" value="drawer">
+                            <div>
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Rincian Pekerjaan</label>
+                                <input type="text" name="description" value="{{.Description}}" required
+                                    class="w-full border border-gray-300 rounded text-xs p-1.5 focus:ring-blue-300 focus:border-blue-400 bg-white">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Progres</label>
+                                    <input type="text" name="progress" value="{{.Progress}}"
+                                        class="w-full border border-gray-300 rounded text-xs p-1.5 focus:ring-blue-300 focus:border-blue-400 bg-white">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Kendala</label>
+                                    <input type="text" name="obstacle" value="{{.Obstacle}}"
+                                        class="w-full border border-red-300 rounded text-xs p-1.5 focus:ring-red-300 focus:border-red-400 bg-white text-red-600">
+                                </div>
+                            </div>
+                            <div class="flex justify-end gap-1.5 pt-1">
+                                <button type="button" @click="editing = false" class="px-2.5 py-1 border border-gray-200 text-gray-500 text-[10px] font-bold rounded hover:bg-gray-50 transition-colors cursor-pointer">
+                                    Batal
+                                </button>
+                                <button type="submit" class="px-2.5 py-1 bg-blue-600 text-white text-[10px] font-bold rounded hover:bg-blue-700 transition-colors shadow-sm cursor-pointer">
+                                    Simpan
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+                {{else}}
+                <div class="py-12 text-center border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+                    <p class="text-xs text-gray-400 italic">Belum ada rincian subtask untuk tugas ini.</p>
+                </div>
+                {{end}}
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Metadata Footer -->
+    <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 text-[10px] text-gray-400 flex justify-between">
+        <span>Dibuat: {{.Task.CreatedAt.Format "02 Jan 2006, 15:04"}}</span>
+        <span>Terakhir Diupdate: {{.Task.UpdatedAt.Format "02 Jan 2006, 15:04"}}</span>
     </div>
 </div>

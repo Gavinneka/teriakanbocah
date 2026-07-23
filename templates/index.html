@@ -1,15 +1,21 @@
-{{template "base.html" .}}
+{{template "sidebar_layout.html" .}}
 
 {{define "content"}}
-<div class="px-4 py-6 sm:px-0">
+<div class="px-4 py-6 sm:px-0" x-data="{ showForm: false }">
     <div class="flex items-center justify-between mb-6">
         <div>
             <a href="/" class="text-sm text-blue-600 mb-1 hover:underline">&larr; Kembali ke Portal</a>
             <h1 class="text-2xl font-semibold text-gray-900">Manajemen Perawatan AC</h1>
         </div>
+        <button @click="showForm = !showForm"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-semibold rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors cursor-pointer">
+            <span x-text="showForm ? 'Sembunyikan Form' : '+ Tambah Perawatan'">+ Tambah Perawatan</span>
+        </button>
     </div>
 
-    {{template "form" .}}
+    <div x-show="showForm" x-transition class="mb-6">
+        {{template "form" .}}
+    </div>
 
     <div class="mb-8 bg-white p-5 rounded-xl shadow-sm border border-gray-200">
         <div class="flex items-center mb-4">

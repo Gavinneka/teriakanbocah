@@ -1,4 +1,4 @@
-{{template "base.html" .}}
+{{template "sidebar_layout.html" .}}
 
 {{define "content"}}
 <div class="px-4 py-6 sm:px-0">
@@ -71,7 +71,7 @@
                                 {{if .IsActive}}Nonaktifkan{{else}}Aktifkan{{end}}
                             </button>
                         </form>
-                        <button hx-post="/admin/users/{{.ID}}/reset_pass" hx-confirm="Yakin mereset password user ini menjadi 123456?" hx-swap="none" onhtmx:afterRequest="alert('Berhasil! Password telah direset menjadi 123456.')" class="text-orange-600 hover:text-orange-900">Reset Pass</button>
+                        <button hx-post="/admin/users/{{.ID}}/reset_pass" hx-confirm="Yakin mereset password user ini menjadi 123456?" hx-swap="none" hx-on::after-request="if (event.detail.successful) alert('Berhasil! Password telah direset menjadi 123456.')" class="text-orange-600 hover:text-orange-900">Reset Pass</button>
                         <button hx-delete="/admin/users/{{.ID}}" hx-confirm="Yakin ingin menghapus user ini?" hx-target="closest tr" class="text-red-600 hover:text-red-900">Hapus</button>
                         {{else}}
                         <span class="text-gray-400 cursor-not-allowed">Master Account</span>
@@ -147,7 +147,7 @@
 <script>
     function togglePermissions() {
         var role = document.getElementById('roleSelect').value;
-        var section = document.getElementById('permissionSection');
+        var section = document.getElementById('moduleSection');
         if (role === 'master') {
             section.classList.add('hidden');
         } else {

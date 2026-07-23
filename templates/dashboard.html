@@ -1,65 +1,52 @@
-{{template "base.html" .}}
+{{template "sidebar_layout.html" .}}
 
 {{define "content"}}
-<div class="px-4 py-6 sm:px-0">
-    <div class="mb-10 text-center">
-        <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight sm:text-5xl">Portal Aplikasi</h1>
-        <p class="mt-4 text-xl text-gray-500">Pilih aplikasi yang ingin anda kelola.</p>
+<div class="max-w-4xl">
+    <div class="mb-8 border-b border-gray-200 pb-5">
+        <h1 class="text-2xl font-semibold text-gray-900">Beranda</h1>
+        <p class="mt-1 text-sm text-gray-500">Pilih bagian yang ingin dibuka.</p>
     </div>
 
-    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <!-- AC Tracker Card -->
+    <div class="border-t border-gray-200">
         {{if or (eq .UserRole "master") (contains .AllowedModules "ac")}}
-        <a href="/ac" class="block group transform hover:-translate-y-1 transition duration-300">
-            <div class="bg-white overflow-hidden shadow-lg rounded-xl border border-gray-100 group-hover:shadow-2xl transition-shadow">
-                <div class="p-6">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0 bg-blue-100 rounded-lg p-3">
-                            <span class="text-3xl">❄️</span>
-                        </div>
-                        <div class="ml-5">
-                            <h3 class="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">Catatan AC</h3>
-                            <p class="mt-2 text-sm text-gray-500">
-                                Kelola jadwal perawatan dan riwayat service AC.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-gray-50 px-6 py-4 border-t border-gray-100">
-                    <div class="flex items-center text-sm font-medium text-blue-600 group-hover:text-blue-800">
-                        Buka Aplikasi <span aria-hidden="true" class="ml-1">&rarr;</span>
-                    </div>
-                </div>
+        <a href="/ac"
+            class="group -mx-3 flex items-center justify-between gap-6 border-b border-gray-200 px-3 py-5 hover:bg-gray-50">
+            <div>
+                <h2 class="text-base font-semibold text-gray-900 group-hover:text-blue-700">Perawatan AC</h2>
+                <p class="mt-1 text-sm text-gray-500">Jadwal dan riwayat perawatan unit AC.</p>
             </div>
+            <svg class="h-5 w-5 flex-none text-gray-400 group-hover:text-gray-700" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7" />
+            </svg>
         </a>
         {{end}}
 
         {{if or (eq .UserRole "master") (contains .AllowedModules "work")}}
-        <a href="/work" class="block group transform hover:-translate-y-1 transition duration-300">
-            <div class="bg-white overflow-hidden shadow-lg rounded-xl border border-gray-100 group-hover:shadow-2xl transition-shadow">
-                <div class="p-6">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0 bg-amber-100 rounded-lg p-3">
-                            <span class="text-3xl">📝</span>
-                        </div>
-                        <div class="ml-5">
-                            <h3 class="text-lg font-bold text-gray-900 group-hover:text-amber-600 transition-colors">Sistem Kerja</h3>
-                            <p class="mt-2 text-sm text-gray-500">
-                                Catat task, proses, kendala, dan status pekerjaan.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-gray-50 px-6 py-4 border-t border-gray-100">
-                    <div class="flex items-center text-sm font-medium text-amber-600 group-hover:text-amber-800">
-                        Buka Sistem <span aria-hidden="true" class="ml-1">&rarr;</span>
-                    </div>
-                </div>
+        <a href="/work"
+            class="group -mx-3 flex items-center justify-between gap-6 border-b border-gray-200 px-3 py-5 hover:bg-gray-50">
+            <div>
+                <h2 class="text-base font-semibold text-gray-900 group-hover:text-blue-700">Pekerjaan</h2>
+                <p class="mt-1 text-sm text-gray-500">Tugas, progres, kendala, dan status penyelesaian.</p>
             </div>
+            <svg class="h-5 w-5 flex-none text-gray-400 group-hover:text-gray-700" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7" />
+            </svg>
         </a>
         {{end}}
+
+        <a href="/improvement"
+            class="group -mx-3 flex items-center justify-between gap-6 border-b border-gray-200 px-3 py-5 hover:bg-gray-50">
+            <div>
+                <h2 class="text-base font-semibold text-gray-900 group-hover:text-blue-700">Catatan perbaikan</h2>
+                <p class="mt-1 text-sm text-gray-500">Daftar pekerjaan perbaikan dan biaya yang dikeluarkan.</p>
+            </div>
+            <svg class="h-5 w-5 flex-none text-gray-400 group-hover:text-gray-700" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7" />
+            </svg>
+        </a>
     </div>
-
-
 </div>
 {{end}}

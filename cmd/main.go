@@ -49,11 +49,25 @@ func main() {
 	http.HandleFunc("POST /work/notes/{id}", handlers.AuthMiddleware(handlers.ModuleMiddleware("work")(handlers.UpdateTaskNotes)))
 	http.HandleFunc("GET /work/edit/{id}", handlers.AuthMiddleware(handlers.ModuleMiddleware("work")(handlers.EditSimpleTask)))
 	http.HandleFunc("POST /work/edit/{id}", handlers.AuthMiddleware(handlers.ModuleMiddleware("work")(handlers.EditSimpleTask)))
-	http.HandleFunc("POST /work/tasks/{id}/archive", handlers.AuthMiddleware(handlers.ModuleMiddleware("work")(handlers.ArchiveTask)))
 	http.HandleFunc("POST /work/tasks/{id}/delete", handlers.AuthMiddleware(handlers.ModuleMiddleware("work")(handlers.DeleteTask)))
-	http.HandleFunc("POST /work/tasks/{id}/obstacles", handlers.AuthMiddleware(handlers.ModuleMiddleware("work")(handlers.AddObstacle)))
-	http.HandleFunc("POST /work/tasks/{id}/obstacles/{obsId}/resolve", handlers.AuthMiddleware(handlers.ModuleMiddleware("work")(handlers.ResolveObstacle)))
-	http.HandleFunc("POST /work/tasks/{id}/obstacles/{obsId}/delete", handlers.AuthMiddleware(handlers.ModuleMiddleware("work")(handlers.DeleteObstacle)))
+	http.HandleFunc("POST /work/tasks/{id}/details", handlers.AuthMiddleware(handlers.ModuleMiddleware("work")(handlers.AddTaskDetail)))
+	http.HandleFunc("POST /work/tasks/{id}/details/{detailId}/edit", handlers.AuthMiddleware(handlers.ModuleMiddleware("work")(handlers.EditTaskDetail)))
+	http.HandleFunc("POST /work/tasks/{id}/details/{detailId}/delete", handlers.AuthMiddleware(handlers.ModuleMiddleware("work")(handlers.DeleteTaskDetail)))
+	http.HandleFunc("POST /work/tasks/{id}/details/{detailId}/toggle", handlers.AuthMiddleware(handlers.ModuleMiddleware("work")(handlers.ToggleTaskDetail)))
+	http.HandleFunc("POST /work/tasks/{id}/details/{detailId}/toggle-obstacle", handlers.AuthMiddleware(handlers.ModuleMiddleware("work")(handlers.ToggleObstacle)))
+
+	// Inbox and Task Drawer routes
+	http.HandleFunc("GET /work/inbox", handlers.AuthMiddleware(handlers.ModuleMiddleware("work")(handlers.WorkInbox)))
+	http.HandleFunc("POST /work/inbox", handlers.AuthMiddleware(handlers.ModuleMiddleware("work")(handlers.CreateInboxTask)))
+	http.HandleFunc("GET /work/tasks/{id}/drawer", handlers.AuthMiddleware(handlers.ModuleMiddleware("work")(handlers.TaskDrawer)))
+	http.HandleFunc("PUT /work/tasks/{id}", handlers.AuthMiddleware(handlers.ModuleMiddleware("work")(handlers.UpdateTaskDrawer)))
+
+	// Improvement Log Routes
+	http.HandleFunc("GET /improvement", handlers.AuthMiddleware(handlers.ImprovementList))
+	http.HandleFunc("POST /improvement/add", handlers.AuthMiddleware(handlers.ImprovementAdd))
+	http.HandleFunc("GET /improvement/edit/{id}", handlers.AuthMiddleware(handlers.ImprovementEdit))
+	http.HandleFunc("POST /improvement/edit/{id}", handlers.AuthMiddleware(handlers.ImprovementEdit))
+	http.HandleFunc("POST /improvement/delete/{id}", handlers.AuthMiddleware(handlers.ImprovementDelete))
 
 	port := os.Getenv("PORT")
 	if port == "" {

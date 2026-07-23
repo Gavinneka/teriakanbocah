@@ -1,77 +1,49 @@
-{{template "base.html" .}}
+{{template "sidebar_layout.html" .}}
 
 {{define "content"}}
-<div class="max-w-5xl mx-auto py-8 px-4">
-    <div class="mb-10 text-center flex flex-col items-center">
-        <h1 class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-600 tracking-tight mb-3">
-            Task Manager
-        </h1>
-        <div class="inline-block bg-blue-50/50 border border-blue-100 rounded-full px-6 py-1.5 shadow-sm">
-            <span class="text-sm font-bold text-blue-600 tracking-widest uppercase">Catatan & Progres</span>
-        </div>
-        <p class="mt-3 text-sm text-gray-400">Atur task, progres, dan kendalamu dengan lebih baik.</p>
-    </div>
+<div class="max-w-5xl mx-auto py-4 px-2 sm:px-4">
 
-    <!-- Quick Add Form -->
-    <div class="bg-white shadow rounded-lg p-4 sm:p-6 mb-6 border border-gray-100">
-        <form action="/work/add" method="POST" class="flex flex-col sm:flex-row gap-4">
-            <input type="text" name="title" required
-                class="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-600 sm:text-sm"
-                placeholder="Apa yang ingin dikerjakan? (Default: Priority Medium)">
-            
-            <select name="assigned_to" class="w-full sm:w-32 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-600 sm:text-sm text-gray-600">
-                <option value="">- Assign -</option>
-                {{range $.Users}}
-                <option value="{{.}}">{{.}}</option>
-                {{end}}
-            </select>
-            
-            <input type="date" name="due_date" class="w-full sm:w-40 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-600 sm:text-sm text-gray-600 cursor-pointer" title="Deadline">
-
-            <button type="submit"
-                class="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                Tambah Task
+    <!-- Collapsible Quick Add Form -->
+    <div x-data="{ open: false }" class="mb-4">
+        <div class="flex justify-end mb-2">
+            <button @click="open = !open"
+                class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-semibold rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors cursor-pointer">
+                <span x-text="open ? 'Sembunyikan Form' : '+ Tambah Task Baru'">+ Tambah Task Baru</span>
             </button>
-        </form>
+        </div>
+        <div x-show="open" x-transition id="quick-add" class="bg-white shadow-sm rounded-lg p-3 border border-gray-200">
+            <form action="/work/add" method="POST" class="flex flex-col sm:flex-row gap-2">
+                <input type="text" name="title" required
+                    class="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-600 text-sm py-1.5 px-3"
+                    placeholder="Task baru... (default: prioritas medium)">
+                <input type="date" name="due_date" class="w-full sm:w-36 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-600 text-sm py-1.5 px-2 text-gray-600 cursor-pointer" title="Deadline">
+                <button type="submit"
+                    class="inline-flex items-center px-4 py-1.5 border border-transparent text-sm font-semibold rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors whitespace-nowrap">
+                    + Tambah
+                </button>
+            </form>
+        </div>
     </div>
 
-    <!-- Active Obstacles Summary (Moved from Portal) -->
-    {{if .GlobalObstacles}}
-    <div class="mb-8 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg shadow-sm">
-        <div class="flex items-center mb-2">
-            <div class="flex-shrink-0">
-                <span class="text-xl">⚠️</span>
-            </div>
-            <div class="ml-3">
-                <h3 class="text-sm font-medium text-red-800">
-                    Kendala Aktif ({{len .GlobalObstacles}})
-                </h3>
-            </div>
-        </div>
-        <div class="ml-8 grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-            {{range .GlobalObstacles}}
-            <div class="text-sm text-red-700 bg-white/60 p-2 rounded border border-red-100">
-                <span class="font-bold text-gray-700 block text-xs uppercase">{{.TaskTitle}}</span>
-                {{.Description}}
-            </div>
-            {{end}}
-        </div>
-    </div>
-    {{end}}
+
 
     <!-- Filters & Search -->
-    <div class="flex flex-col md:flex-row justify-between items-stretch md:items-center mb-6 gap-4">
-        <div class="flex items-center space-x-2 bg-gray-100 p-1 rounded-lg overflow-x-auto whitespace-nowrap">
-            <a href="/work"
-                class="px-4 py-1.5 rounded-md text-sm font-medium transition-colors {{if eq .Filter ""}}bg-white text-gray-900 shadow-sm{{else}}text-gray-500 hover:text-gray-900{{end}}">Aktif</a>
-            <a href="/work?filter=done"
-                class="px-4 py-1.5 rounded-md text-sm font-medium transition-colors {{if eq .Filter "done"}}bg-white
-                text-gray-900 shadow-sm{{else}}text-gray-500 hover:text-gray-900{{end}}">Selesai</a>
-            <a href="/work?filter=kendala"
-                class="px-4 py-1.5 rounded-md text-sm font-medium transition-colors {{if eq .Filter "kendala"}}bg-white
-                text-gray-900 shadow-sm{{else}}text-gray-500 hover:text-gray-900{{end}}">Kendala</a>
-            <a href="/work?filter=archived"
-                class="px-4 py-1.5 rounded-md text-sm font-medium transition-colors {{if eq .Filter "archived"}}bg-white text-gray-900 shadow-sm{{else}}text-gray-500 hover:text-gray-900{{end}}">Arsip</a>
+    <div class="flex flex-col md:flex-row justify-between items-stretch md:items-center mb-4 gap-3">
+        <div class="flex items-center gap-2 flex-wrap">
+            <div class="flex items-center space-x-1 bg-gray-100 p-1 rounded-lg overflow-x-auto whitespace-nowrap">
+                <a href="/work"
+                    class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors {{if eq .Filter ""}}bg-white text-gray-900 shadow-sm{{else}}text-gray-500 hover:text-gray-900{{end}}">Aktif</a>
+                <a href="/work?filter=done"
+                    class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors {{if eq .Filter "done"}}bg-white text-gray-900 shadow-sm{{else}}text-gray-500 hover:text-gray-900{{end}}">Selesai</a>
+                <a href="/work?filter=kendala"
+                    class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors {{if eq .Filter "kendala"}}bg-white text-gray-900 shadow-sm{{else}}text-gray-500 hover:text-gray-900{{end}}">Kendala</a>
+            </div>
+            {{if .GlobalObstacles}}
+            <a href="/work?filter=kendala" class="flex items-center gap-1 bg-red-50 text-red-600 border border-red-200 px-2.5 py-1 rounded-full text-xs font-bold animate-pulse hover:bg-red-100 transition-colors" title="Lihat semua kendala aktif">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                {{len .GlobalObstacles}} Kendala
+            </a>
+            {{end}}
         </div>
         <form action="/work" method="GET" class="w-full md:w-auto">
             <input type="hidden" name="filter" value="{{.Filter}}">
@@ -99,12 +71,6 @@
                             class="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">
                             Aktivitas & Waktu</th>
                         <th scope="col"
-                            class="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                            Progress</th>
-                        <th scope="col"
-                            class="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                            Kendala</th>
-                        <th scope="col"
                             class="px-6 py-4 text-center text-[10px] font-bold text-gray-400 uppercase tracking-widest w-24">
                             Status</th>
                         <th scope="col"
@@ -116,75 +82,45 @@
                     {{range .Tasks}}
                     <tr class="hover:bg-blue-50/30 transition-colors group">
                         <td class="px-6 py-5">
-                            <div class="flex items-start gap-2">
+                            <div class="flex items-center gap-3">
                                 {{if eq .Priority "high"}}
-                                <span class="mt-0.5 h-2 w-2 rounded-full bg-red-500 flex-shrink-0"
+                                <span class="h-2.5 w-2.5 rounded-full bg-red-500 flex-shrink-0"
                                     title="High Priority"></span>
                                 {{else if eq .Priority "low"}}
-                                <span class="mt-0.5 h-2 w-2 rounded-full bg-gray-300 flex-shrink-0"
+                                <span class="h-2.5 w-2.5 rounded-full bg-gray-300 flex-shrink-0"
                                     title="Low Priority"></span>
                                 {{else}}
-                                <span class="mt-0.5 h-2 w-2 rounded-full bg-yellow-400 flex-shrink-0"
+                                <span class="h-2.5 w-2.5 rounded-full bg-yellow-400 flex-shrink-0"
                                     title="Medium Priority"></span>
                                 {{end}}
-                                <div class="text-sm font-bold text-gray-900 {{if eq .Status "done"}}line-through text-gray-400{{end}}">
+                                <button hx-get="/work/tasks/{{.ID}}/drawer" hx-target="#side-drawer" class="text-sm font-bold text-gray-900 hover:text-blue-600 transition-colors {{if eq .Status "done"}}line-through text-gray-400{{end}} text-left focus:outline-none cursor-pointer">
                                     {{.Title}}
+                                </button>
+
+                                <div class="flex items-center gap-1.5 flex-wrap ml-2">
+                                    {{if gt .TotalDetails 0}}
+                                    <span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full text-[10px] font-bold border border-blue-100">
+                                        {{.CompletedDetails}}/{{.TotalDetails}} Subtask
+                                    </span>
+                                    {{end}}
+                                    {{if gt .OpenObstaclesCount 0}}
+                                    <span class="bg-red-50 text-red-600 px-2 py-0.5 rounded-full text-[10px] font-bold border border-red-100 animate-pulse">
+                                        {{.OpenObstaclesCount}} Kendala
+                                    </span>
+                                    {{end}}
+                                    {{if .DueDate}}
+                                    <span class="bg-orange-50 text-orange-700 px-2 py-0.5 rounded-full text-[10px] font-bold border border-orange-200">
+                                        Tenggat: {{.DueDate.Format "02 Jan 2006"}}
+                                    </span>
+                                    {{end}}
                                 </div>
                             </div>
-                            <div
-                                class="ml-4 mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-gray-400 font-medium items-center">
-                                {{if .AssignedTo}}
-                                <span class="bg-blue-50 text-blue-700 font-bold px-1.5 py-0.5 rounded border border-blue-200" title="Ditugaskan kepada">👤 {{.AssignedTo}}</span>
-                                {{end}}
-                                {{if .DueDate}}
-                                <span class="bg-orange-50 text-orange-700 font-bold px-1.5 py-0.5 rounded border border-orange-200" title="Deadline">⏰ {{.DueDate.Format "02 Jan 2006"}}</span>
-                                {{end}}
-                                <span title="Dibuat pada">➕ {{.CreatedAt.Format "02 Jan, 15:04"}}</span>
-                                <span title="Terakhir diupdate">✏️ {{.UpdatedAt.Format "15:04"}}</span>
-                                {{if .CompletedAt}}
-                                <span class="text-green-600 font-bold" title="Selesai pada">✅ {{.CompletedAt.Format
-                                    "15:04"}}</span>
-                                {{end}}
-                                {{if gt .OpenObstaclesCount 0}}
-                                <span
-                                    class="bg-red-50 text-red-600 px-2 py-0.5 rounded-md font-extrabold flex items-center shadow-sm animate-pulse border border-red-100"
-                                    title="{{.OpenObstaclesCount}} Kendala Aktif">
-                                    ⚠️ {{.OpenObstaclesCount}} Kendala
-                                </span>
-                                {{end}}
-                            </div>
                         </td>
-                        <td class="px-6 py-5">
-                            <form action="/work/notes/{{.ID}}" method="POST" class="m-0" x-data="{ 
-                                resize() { 
-                                    this.$refs.textarea.style.height = 'auto'; 
-                                    this.$refs.textarea.style.height = this.$refs.textarea.scrollHeight + 'px'; 
-                                } 
-                            }" x-init="resize()">
-                                <textarea name="notes" x-ref="textarea" @input="resize()"
-                                    class="w-full bg-transparent border-none focus:ring-1 focus:ring-blue-300 rounded-lg text-sm text-gray-600 italic placeholder-gray-300 transition-all hover:bg-white/50 py-1 resize-none overflow-hidden"
-                                    placeholder="Catat progres..."
-                                    onblur="if(this.value != this.defaultValue) this.form.submit()">{{.Outcome}}</textarea>
-                            </form>
-                        </td>
-                        <td class="px-6 py-5">
-                            {{if .Obstacles}}
-                            <div class="space-y-1">
-                                {{range .Obstacles}}
-                                <div class="flex items-start text-xs text-red-600 font-medium">
-                                    <span class="mr-1 mt-0.5">⚠️</span>
-                                    <span>{{.Description}}</span>
-                                </div>
-                                {{end}}
-                            </div>
-                            {{else}}
-                            <span class="text-[10px] text-gray-300 italic">Tidak ada</span>
-                            {{end}}
-                        </td>
+
                         <td class="px-6 py-5 text-center">
                             <form action="/work/toggle/{{.ID}}" method="POST" class="m-0">
                                 <button type="submit"
-                                    class="inline-flex items-center px-4 py-1.5 rounded-lg text-[10px] font-extrabold uppercase tracking-tight shadow-sm transition-all {{if eq .Status "done"}}bg-green-600 text-white hover:bg-green-700{{else}}bg-amber-100 text-amber-700
+                                    class="inline-flex items-center px-4 py-1.5 rounded-lg text-[10px] font-extrabold uppercase tracking-tight shadow-sm transition-all cursor-pointer {{if eq .Status "done"}}bg-green-600 text-white hover:bg-green-700{{else}}bg-amber-100 text-amber-700
                                     hover:bg-amber-200{{end}}">
                                     {{if eq .Status "done"}}Selesai{{else}}Proses{{end}}
                                 </button>
@@ -192,18 +128,18 @@
                         </td>
                         <td class="px-6 py-5 text-center">
                             <div class="flex items-center justify-center gap-2">
-                                <a href="/work/edit/{{.ID}}"
-                                    class="inline-flex items-center justify-center p-2 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all opacity-0 group-hover:opacity-100"
+                                <button hx-get="/work/tasks/{{.ID}}/drawer" hx-target="#side-drawer"
+                                    class="inline-flex items-center justify-center p-2 rounded-lg text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
                                     title="Edit Task">
                                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                     </svg>
-                                </a>
+                                </button>
                                 <form action="/work/tasks/{{.ID}}/delete" method="POST" class="m-0"
                                     onsubmit="return confirm('Yakin ingin menghapus task ini?');">
                                     <button type="submit"
-                                        class="inline-flex items-center justify-center p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
+                                        class="inline-flex items-center justify-center p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100 cursor-pointer"
                                         title="Hapus Task">
                                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -216,9 +152,8 @@
                     </tr>
                     {{else}}
                     <tr>
-                        <td colspan="5" class="px-6 py-20 text-center">
+                        <td colspan="3" class="px-6 py-20 text-center">
                             <div class="flex flex-col items-center">
-                                <span class="text-4xl mb-4">✨</span>
                                 <p class="text-sm text-gray-500 font-medium italic">Semua kerjaan sudah beres. Tambahkan
                                     task baru untuk memulai!</p>
                             </div>

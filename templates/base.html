@@ -13,6 +13,18 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+
+        .shadow, .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl {
+            box-shadow: none !important;
+        }
+
+        .rounded-xl, .rounded-2xl {
+            border-radius: 0.5rem !important;
+        }
+
+        .animate-pulse {
+            animation: none !important;
+        }
     </style>
 </head>
 
@@ -62,7 +74,7 @@
                             <a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                 role="menuitem">Profil Saya</a>
                             <a href="/logout" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                                role="menuitem">Keluar Account</a>
+                                role="menuitem">Keluar</a>
                         </div>
                     </div>
                     {{else}}

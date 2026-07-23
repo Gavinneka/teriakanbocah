@@ -28,16 +28,16 @@ Modul ini adalah pusat kendali semua akses ke aplikasi. Hanya user dengan hak ak
 
 ## 2. Modul Work System (Sistem Kerja / Task Manager)
 
-Ini adalah fitur _to-do list_ tim Anda untuk mencatat apapun aktivitas harian hingga proyek jangka panjang.
+Ini adalah fitur daftar tugas (to-do list) untuk mencatat aktivitas harian hingga proyek jangka panjang.
 
 * **Cara Menambah Tugas (Quick Add):**
-  Ketik task Anda di kotak panjang, lalu Anda bebas memilih menugaskannya kepada siapa (*dropdown Assign*), serta tanggal kapan itu harus diselesaikan (*Deadline*). Klik **Tambah Task** dan semuanya langsung terekam.
+  Ketik nama tugas di kotak input utama, tentukan tenggat waktu jika diperlukan, kemudian klik tombol **Tambah Task**. Tugas baru akan langsung tercatat ke dalam sistem.
 
-* **Tombol "Fokus & Eksekusi":**
-  Anda bisa menatap deretan task Anda. Klik nama judul task untuk mengubah rincian isinya secara penuh, mengubah prioritas (High, Medium, Low), atau sekadar mengetik progress ringkas melalui kotak bergaris miring untuk menginformasikan kelanjutannya tanpa berpindah halaman.
+* **List Detail Kerja (Langkah Detail):**
+  Klik tombol edit atau judul tugas untuk masuk ke halaman detail tugas secara penuh. Di sini, Anda dapat memecah tugas utama menjadi beberapa langkah rincian detail dengan cepat melalui formulir tambah cepat sekali input (cukup masukkan deskripsi kerja dan tekan Tambah). Setelah ditambahkan, Anda dapat mengeklik ikon edit untuk mengisi catatan progres saat ini serta kendala secara inline (langsung di tempat) tanpa memuat ulang halaman.
 
-* **Manajemen Kendala (Obstacles):**
-  Bila ada masalah teknis yang membuat task macet, klik menu detail task tersebut dan tambahkan "Kendala Baru". Task ini kelak otomatis memiliki alarm di halaman depan dan masuk dalam kategori filter merah **"Kendala"** di tabel Anda.
+* **Manajemen Kendala terintegrasi:**
+  Fitur kendala kini diintegrasikan secara penuh ke dalam masing-masing butir detail kerja. Jika suatu langkah memiliki kendala, Anda cukup menuliskannya langsung pada butir detail kerja tersebut melalui inline editing. Tugas yang memiliki detail berkendala aktif akan secara otomatis memicu indikator peringatan dan menampilkan ringkasan kendala tersebut di halaman utama dashboard agar mendapat perhatian prioritas.
 
 ---
 

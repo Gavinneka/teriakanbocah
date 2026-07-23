@@ -2,34 +2,53 @@ package models
 
 import "time"
 
-type Project struct {
-	ID          int
-	Name        string
-	OutcomeGoal string
-	Status      string
-	CreatedAt   time.Time
-}
-
 type Task struct {
 	ID            int
 	Title         string
 	Outcome       string
 	Estimate      int       // in minutes
 	Status        string    // inbox, todo, doing, done
-	ProjectID     int       // nullable (0 if null)
 	ScheduledDate time.Time // nullable
-	ProjectName   string    // Joined field
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 	CompletedAt   *time.Time
 	AssignedTo    string     // Empty if unassigned
 	DueDate       *time.Time // Nullable deadline
-	Priority      string // low, medium, high
+	Priority      string     // low, medium, high
 	IsArchived    bool
 
 	// Obstacle support
 	Obstacles          []Obstacle
 	OpenObstaclesCount int
+
+	// Details support
+	Details []TaskDetail
+}
+
+func (t Task) TotalDetails() int {
+	return len(t.Details)
+}
+
+func (t Task) CompletedDetails() int {
+	count := 0
+	for _, d := range t.Details {
+		if d.IsDone {
+			count++
+		}
+	}
+	return count
+}
+
+type TaskDetail struct {
+	ID               int
+	TaskID           int
+	Description      string
+	Progress         string
+	Obstacle         string
+	IsDone           bool
+	ObstacleResolved bool
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
 }
 
 type Obstacle struct {

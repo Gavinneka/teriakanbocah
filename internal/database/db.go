@@ -25,7 +25,7 @@ func InitDB() {
 		status TEXT,
 		notes TEXT
 	);
-	
+
 	CREATE TABLE IF NOT EXISTS users (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		username TEXT UNIQUE,
@@ -41,7 +41,7 @@ func InitDB() {
 		capabilities TEXT,
 		FOREIGN KEY(user_id) REFERENCES users(id)
 	);
-	
+
 	CREATE TABLE IF NOT EXISTS projects (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		name TEXT,
@@ -78,7 +78,7 @@ func InitDB() {
 		review_notes TEXT,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
-	
+
 	CREATE TABLE IF NOT EXISTS task_obstacles (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		task_id INTEGER,
@@ -87,12 +87,35 @@ func InitDB() {
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		resolved_at DATETIME,
 		FOREIGN KEY(task_id) REFERENCES tasks(id)
+	);
+
+	CREATE TABLE IF NOT EXISTS task_details (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		task_id INTEGER,
+		description TEXT NOT NULL,
+		progress TEXT DEFAULT '',
+		obstacle TEXT DEFAULT '',
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		FOREIGN KEY(task_id) REFERENCES tasks(id) ON DELETE CASCADE
 	);`
 
 	_, err = DB.Exec(createTableSQL)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// Hotfix: Ensure task_details exists for existing databases
+	_, _ = DB.Exec(`CREATE TABLE IF NOT EXISTS task_details (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		task_id INTEGER,
+		description TEXT NOT NULL,
+		progress TEXT DEFAULT '',
+		obstacle TEXT DEFAULT '',
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		FOREIGN KEY(task_id) REFERENCES tasks(id) ON DELETE CASCADE
+	);`)
 
 	// Hotfix: Ensure completed_at exists for existing databases
 	_, _ = DB.Exec("ALTER TABLE tasks ADD COLUMN completed_at DATETIME;")
@@ -107,10 +130,15 @@ func InitDB() {
 
 	// Feature Enhancements: Next Service Date
 	_, _ = DB.Exec("ALTER TABLE maintenance_records ADD COLUMN next_service_date DATETIME;")
-	
+
 	// Feature Enhancements: Task Assignments and Due Dates
 	_, _ = DB.Exec("ALTER TABLE tasks ADD COLUMN assigned_to TEXT DEFAULT '';")
 	_, _ = DB.Exec("ALTER TABLE tasks ADD COLUMN due_date DATETIME;")
+
+	// Feature: Subtask done checklist
+	_, _ = DB.Exec("ALTER TABLE task_details ADD COLUMN is_done INTEGER NOT NULL DEFAULT 0;")
+	// Feature: Obstacle resolve tracking
+	_, _ = DB.Exec("ALTER TABLE task_details ADD COLUMN obstacle_resolved INTEGER NOT NULL DEFAULT 0;")
 
 	// Login Logs Table
 	_, _ = DB.Exec(`CREATE TABLE IF NOT EXISTS login_logs (
@@ -120,5 +148,17 @@ func InitDB() {
 		login_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		ip_address TEXT,
 		FOREIGN KEY(user_id) REFERENCES users(id)
+	);`)
+
+	// Improvement Log Table
+	_, _ = DB.Exec(`CREATE TABLE IF NOT EXISTS improvement_logs (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		title TEXT NOT NULL,
+		cost INTEGER DEFAULT 0,
+		status TEXT DEFAULT 'selesai',
+		notes TEXT DEFAULT '',
+		done_at DATE,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);`)
 }

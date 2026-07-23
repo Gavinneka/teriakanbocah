@@ -114,7 +114,7 @@ func GetRecords(w http.ResponseWriter, r *http.Request) {
 
 	tmpl, err := template.ParseFiles(
 		"templates/index.html",
-		"templates/base.html",
+		"templates/sidebar_layout.html",
 		"templates/form.html",
 		"templates/record_item.html",
 	)
@@ -215,7 +215,7 @@ func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 
 	tmpl, err := template.New("dashboard.html").Funcs(template.FuncMap{
 		"contains": strings.Contains,
-	}).ParseFiles("templates/dashboard.html", "templates/base.html")
+	}).ParseFiles("templates/dashboard.html", "templates/sidebar_layout.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -515,7 +515,7 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 
 	tmpl, err := template.New("admin_users.html").Funcs(template.FuncMap{
 		"contains": strings.Contains,
-	}).ParseFiles("templates/admin_users.html", "templates/base.html")
+	}).ParseFiles("templates/admin_users.html", "templates/sidebar_layout.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -716,7 +716,7 @@ func EditUser(w http.ResponseWriter, r *http.Request) {
 
 	tmpl, err := template.New("edit_user.html").Funcs(template.FuncMap{
 		"contains": strings.Contains,
-	}).ParseFiles("templates/edit_user.html", "templates/base.html")
+	}).ParseFiles("templates/edit_user.html", "templates/sidebar_layout.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -775,7 +775,7 @@ func ProfilePage(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	tmpl, err := template.ParseFiles("templates/profile.html", "templates/base.html")
+	tmpl, err := template.ParseFiles("templates/profile.html", "templates/sidebar_layout.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

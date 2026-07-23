@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Teriakan Bocah - Work System</title>
+    <title>Teriakan Bocah</title>
     <link rel="icon" type="image/png" href="/static/logo.png">
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -12,31 +12,49 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #F4F5F7;
+            background-color: #f7f7f6;
         }
 
-        .sidebar-item-active {
-            background-color: rgba(255, 255, 255, 0.1);
-            border-left: 4px solid #fff;
+        /* Tampilan utilitarian: permukaan datar, gerak seperlunya. */
+        .shadow, .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl {
+            box-shadow: none !important;
+        }
+
+        .rounded-xl, .rounded-2xl {
+            border-radius: 0.5rem !important;
+        }
+
+        .animate-pulse {
+            animation: none !important;
         }
     </style>
 </head>
 
-<body class="h-screen flex overflow-hidden" x-data="{ sidebarOpen: false }">
+<body class="h-screen flex overflow-hidden" x-data="{ sidebarOpen: false, sidebarCollapsed: localStorage.getItem('sidebar_collapsed') === 'true', activeRoute: window.location.pathname }">
     <!-- Mobile Sidebar Backdrop -->
     <div x-show="sidebarOpen" class="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 transition-opacity md:hidden"
         @click="sidebarOpen = false"></div>
 
     <!-- Sidebar -->
-    <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-        class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex-shrink-0 flex flex-col transition-transform duration-300 ease-in-out md:static md:translate-x-0">
-        <div class="p-6 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="h-8 w-8 bg-blue-600 rounded-md flex items-center justify-center">
+    <aside :class="(sidebarOpen ? 'translate-x-0' : '-translate-x-full') + ' ' + (sidebarCollapsed ? 'md:w-20' : 'md:w-64')"
+        class="fixed inset-y-0 left-0 z-50 bg-white border-r border-gray-200 flex-shrink-0 flex flex-col transition-[width,transform] duration-300 ease-in-out md:static md:translate-x-0 w-64">
+        <div class="p-6 flex items-center justify-between relative border-b border-gray-100/50">
+            <div class="flex items-center" :class="sidebarCollapsed ? 'space-x-0 justify-center w-full' : 'space-x-3'">
+                <div class="h-8 w-8 bg-blue-600 rounded-md flex items-center justify-center flex-shrink-0">
                     <span class="text-white font-black text-xs">TB</span>
                 </div>
-                <span class="font-bold text-lg tracking-tight text-gray-900">Work System</span>
+                <span x-show="!sidebarCollapsed" x-transition.opacity class="font-semibold text-base text-gray-900">Teriakan Bocah</span>
             </div>
+
+            <!-- Desktop Collapse Toggle Button (Notion style floating on border) -->
+            <button @click="sidebarCollapsed = !sidebarCollapsed; localStorage.setItem('sidebar_collapsed', sidebarCollapsed)"
+                class="hidden md:flex absolute -right-3 top-7 bg-white border border-gray-200 rounded-full p-1 shadow-md z-50 items-center justify-center text-gray-400 hover:text-blue-600 hover:scale-115 transition-all focus:outline-none cursor-pointer"
+                :title="sidebarCollapsed ? 'Bentangkan' : 'Ciutkan'">
+                <svg class="h-3.5 w-3.5 transition-transform duration-300" :class="sidebarCollapsed ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                </svg>
+            </button>
+
             <!-- Close button for mobile -->
             <button @click="sidebarOpen = false" class="md:hidden text-gray-500 hover:text-gray-700">
                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -45,68 +63,93 @@
             </button>
         </div>
 
-        <!-- Global Create -->
-        <div class="px-4 mb-6">
-            <button
-                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow-sm flex items-center justify-center transition-colors">
-                <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
-                </svg>
-                Create
-            </button>
-        </div>
-
         <!-- Navigation -->
-        <nav class="flex-1 px-2 space-y-1 overflow-y-auto">
+        <nav class="flex-1 px-2 space-y-1 overflow-y-auto pt-4">
             <a href="/"
-                class="flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition-colors">
-                <span class="mr-3 text-xl">🏠</span> Dashboard
+                :class="(sidebarCollapsed ? 'justify-center px-2' : 'px-4') + ' ' + (activeRoute === '/' ? 'bg-blue-50 text-blue-600 font-bold border-l-4 border-blue-600 rounded-r-md' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600')"
+                class="group flex items-center py-3 text-sm font-medium transition-colors"
+                title="Dashboard Portal">
+                <svg :class="(sidebarCollapsed ? 'mr-0' : 'mr-3') + ' ' + (activeRoute === '/' ? 'text-blue-600' : 'text-gray-400 group-hover:text-blue-600')" class="h-5 w-5 transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <span x-show="!sidebarCollapsed" x-transition.opacity>Dashboard</span>
             </a>
 
-            <div class="pt-4 pb-2 px-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Plan & Execute
-            </div>
-            <a href="/work/inbox"
-                class="flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition-colors">
-                <span class="mr-3 text-xl">📥</span> Backlog (Inbox)
-            </a>
+            <div x-show="!sidebarCollapsed" class="pt-5 pb-2 px-4 text-xs font-medium text-gray-400">Pekerjaan</div>
+            <div x-show="sidebarCollapsed" class="border-t border-gray-100 my-4 mx-2"></div>
+
+            <!-- 1. Board (Top priority now) -->
             <a href="/work"
-                class="flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition-colors">
-                <span class="mr-3 text-xl">📋</span> Board
-            </a>
-            <a href="/work/projects"
-                class="flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition-colors">
-                <span class="mr-3 text-xl">📂</span> Projects
+                :class="(sidebarCollapsed ? 'justify-center px-2' : 'px-4') + ' ' + (activeRoute.startsWith('/work') && !activeRoute.startsWith('/work/inbox') ? 'bg-blue-50 text-blue-600 font-bold border-l-4 border-blue-600 rounded-r-md' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600')"
+                class="group flex items-center py-3 text-sm font-medium transition-colors"
+                title="Board Pekerjaan">
+                <svg :class="(sidebarCollapsed ? 'mr-0' : 'mr-3') + ' ' + (activeRoute.startsWith('/work') && !activeRoute.startsWith('/work/inbox') ? 'text-blue-600' : 'text-gray-400 group-hover:text-blue-600')" class="h-5 w-5 transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <span x-show="!sidebarCollapsed" x-transition.opacity>Daftar pekerjaan</span>
             </a>
 
-            <div class="pt-4 pb-2 px-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Modules</div>
+            <!-- 2. Backlog (Inbox) -->
+            <a href="/work/inbox"
+                :class="(sidebarCollapsed ? 'justify-center px-2' : 'px-4') + ' ' + (activeRoute.startsWith('/work/inbox') ? 'bg-blue-50 text-blue-600 font-bold border-l-4 border-blue-600 rounded-r-md' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600')"
+                class="group flex items-center py-3 text-sm font-medium transition-colors"
+                title="Backlog (Inbox)">
+                <svg :class="(sidebarCollapsed ? 'mr-0' : 'mr-3') + ' ' + (activeRoute.startsWith('/work/inbox') ? 'text-blue-600' : 'text-gray-400 group-hover:text-blue-600')" class="h-5 w-5 transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0H4m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5a2 2 0 012-2h2a2 2 0 001.414.586l.828.828A2 2 0 0012 15h0a2 2 0 001.757-.964l.828-.828A2 2 0 0116 13h2a2 2 0 012 2z" />
+                </svg>
+                <span x-show="!sidebarCollapsed" x-transition.opacity>Catatan masuk</span>
+            </a>
+
+            <div x-show="!sidebarCollapsed" class="pt-5 pb-2 px-4 text-xs font-medium text-gray-400">Administrasi</div>
+            <div x-show="sidebarCollapsed" class="border-t border-gray-100 my-4 mx-2"></div>
+
+            <!-- AC Tracker -->
             <a href="/ac"
-                class="flex items-center px-4 py-3 text-sm font-medium rounded-md text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition-colors">
-                <span class="mr-3 text-xl">❄️</span> AC Tracker
+                :class="(sidebarCollapsed ? 'justify-center px-2' : 'px-4') + ' ' + (activeRoute.startsWith('/ac') ? 'bg-blue-50 text-blue-600 font-bold border-l-4 border-blue-600 rounded-r-md' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600')"
+                class="group flex items-center py-3 text-sm font-medium transition-colors"
+                title="Manajemen AC">
+                <svg :class="(sidebarCollapsed ? 'mr-0' : 'mr-3') + ' ' + (activeRoute.startsWith('/ac') ? 'text-blue-600' : 'text-gray-400 group-hover:text-blue-600')" class="h-5 w-5 transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v18M3 12h18m-3-6L6 18M6 6l12 12" />
+                </svg>
+                <span x-show="!sidebarCollapsed" x-transition.opacity>Perawatan AC</span>
+            </a>
+
+            <!-- Improvement Log -->
+            <a href="/improvement"
+                :class="(sidebarCollapsed ? 'justify-center px-2' : 'px-4') + ' ' + (activeRoute.startsWith('/improvement') ? 'bg-blue-50 text-blue-600 font-bold border-l-4 border-blue-600 rounded-r-md' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600')"
+                class="group flex items-center py-3 text-sm font-medium transition-colors"
+                title="Catatan Improvement">
+                <svg :class="(sidebarCollapsed ? 'mr-0' : 'mr-3') + ' ' + (activeRoute.startsWith('/improvement') ? 'text-blue-600' : 'text-gray-400 group-hover:text-blue-600')" class="h-5 w-5 transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span x-show="!sidebarCollapsed" x-transition.opacity>Catatan perbaikan</span>
             </a>
         </nav>
 
         <!-- User Profile Bottom -->
         <div class="p-4 border-t border-gray-100" x-data="{ open: false }">
             <button @click="open = !open"
-                class="w-full flex items-center space-x-3 hover:bg-gray-50 p-2 rounded-lg transition-colors relative">
-                <div class="h-8 w-8 rounded-full bg-blue-100 text-blue-800 flex items-center justify-center font-bold">
+                :class="sidebarCollapsed ? 'justify-center' : 'space-x-3'"
+                class="w-full flex items-center hover:bg-gray-50 p-2 rounded-lg transition-all relative cursor-pointer">
+                <div class="h-8 w-8 rounded-full bg-blue-100 text-blue-800 flex items-center justify-center font-bold flex-shrink-0">
                     {{if .UserName}}{{slice .UserName 0 1}}{{else}}G{{end}}
                 </div>
-                <div class="flex-1 text-left min-w-0">
-                    <p class="text-xs font-bold text-gray-900 truncate">{{if .UserName}}{{.UserName}}{{else}}Guest{{end}}</p>
-                    <p class="text-[10px] text-gray-500 uppercase tracking-tighter">{{.UserRole}}</p>
+                <div class="flex-1 text-left min-w-0" x-show="!sidebarCollapsed" x-transition.opacity>
+                    <p class="text-xs font-medium text-gray-900 truncate">{{if .UserName}}{{.UserName}}{{else}}Pengguna{{end}}</p>
+                    <p class="text-xs text-gray-500">{{if eq .UserRole "master"}}Administrator{{else}}Pengguna{{end}}</p>
                 </div>
             </button>
             <div x-show="open" x-transition:enter="transition ease-out duration-100"
                 x-transition:enter-start="transform opacity-0 scale-95"
                 x-transition:enter-end="transform opacity-100 scale-100" @click.away="open = false"
-                class="absolute bottom-16 left-4 w-56 bg-white rounded-lg shadow-2xl py-2 text-gray-800 z-50 border border-gray-200"
+                :class="sidebarCollapsed ? 'bottom-16 left-16' : 'bottom-16 left-4'"
+                class="absolute w-56 bg-white rounded-lg shadow-2xl py-2 text-gray-800 z-50 border border-gray-200"
                 style="display: none;">
                 {{if eq .UserRole "master"}}
-                <a href="/admin/users" class="block px-4 py-2 text-sm hover:bg-gray-100">Admin Settings</a>
+                <a href="/admin/users" class="block px-4 py-2 text-sm hover:bg-gray-100">Kelola pengguna</a>
                 {{end}}
                 <a href="/logout"
-                    class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 font-bold border-t mt-1">Logout</a>
+                    class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 border-t mt-1">Keluar</a>
             </div>
         </div>
     </aside>
@@ -122,12 +165,25 @@
             </button>
             <div class="flex-1 overflow-hidden">
                 <nav class="text-sm font-medium text-gray-500 flex items-center space-x-2 truncate">
-                    <a href="/work" class="hover:text-blue-600 flex-shrink-0">Work System</a>
+                    <a :href="activeRoute.startsWith('/ac') ? '/ac' : activeRoute.startsWith('/admin') ? '/admin/users' : activeRoute.startsWith('/profile') ? '/profile' : '/work'"
+                       class="hover:text-blue-600 flex-shrink-0"
+                       x-text="activeRoute.startsWith('/ac') ? 'Perawatan AC' : activeRoute.startsWith('/improvement') ? 'Catatan perbaikan' : activeRoute.startsWith('/admin') ? 'Pengguna' : activeRoute.startsWith('/profile') ? 'Akun' : 'Pekerjaan'">
+                        Pekerjaan
+                    </a>
                     <svg class="h-4 w-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                         <path
                             d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" />
                     </svg>
-                    <span class="text-gray-900 font-bold active-page-title truncate">Dashboard</span>
+                    <span class="text-gray-900 font-bold active-page-title truncate"
+                          x-text="activeRoute.startsWith('/work/inbox') ? 'Catatan masuk' :
+                                  activeRoute.startsWith('/work/edit') ? 'Ubah pekerjaan' :
+                                  activeRoute.startsWith('/work') ? 'Daftar pekerjaan' :
+                                  activeRoute.startsWith('/ac') ? 'Riwayat' :
+                                  activeRoute.startsWith('/improvement') ? 'Daftar perbaikan' :
+                                  activeRoute.startsWith('/admin') ? 'Kelola pengguna' :
+                                  activeRoute.startsWith('/profile') ? 'Profil' : 'Beranda'">
+                        Beranda
+                    </span>
                 </nav>
             </div>
         </header>
